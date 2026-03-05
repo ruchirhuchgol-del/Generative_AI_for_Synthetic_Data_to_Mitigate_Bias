@@ -1,0 +1,216 @@
+# Documentation Build Workflow
+# =============================
+# Builds and deploys documentation to GitHub Pages
+
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  # ==========================================
+  # Build Documentation
+  # ==========================================
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[docs] || pip install mkdocs mkdocs-material mkdocstrings[python] mkdocs-autorefs
+
+      - name: Generate API documentation
+        run: |
+          python -c "
+          from pathlib import Path
+          import os
+
+          # Create docs/api directory if it doesn't exist
+          api_dir = Path('docs/api')
+          api_dir.mkdir(parents=True, exist_ok=True)
+
+          # Generate stub files for main modules
+          modules = [
+              'core',
+              'models',
+              'data',
+              'training',
+              'fairness',
+              'evaluation',
+              'synthesis',
+              'api'
+          ]
+
+          for module in modules:
+              stub_file = api_dir / f'{module}.md'
+              content = f'''# {module.title()} API
+
+::: src.{module}
+    handler: python
+    options:
+      show_root_heading: true
+      show_source: true
+      members:
+        - public
+      inherited_members: true
+'''
+              stub_file.write_text(content)
+              print(f'Generated {stub_file}')
+
+          print('API documentation generated successfully')
+          "
+
+      - name: Build with MkDocs
+        run: mkdocs build --strict
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+  # ==========================================
+  # Deploy to GitHub Pages
+  # ==========================================
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ==========================================
+  # Link Checker
+  # ==========================================
+  link-check:
+    name: Check Links
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: ./site
+
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --base ./site --no-progress './site/**/*.html'
+          fail: false
+        continue-on-error: true
+
+  # ==========================================
+  # Documentation Quality
+  # ==========================================
+  quality:
+    name: Documentation Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for TODOs in documentation
+        run: |
+          echo "Checking for TODO items in documentation..."
+          TODOS=$(grep -r "TODO\|FIXME\|XXX" docs/ || true)
+          if [ -n "$TODOS" ]; then
+            echo "Found TODOs in documentation:"
+            echo "$TODOS"
+            echo ""
+            echo "Consider resolving these before release."
+          else
+            echo "No TODOs found in documentation. ✓"
+          fi
+
+      - name: Check markdown formatting
+        run: |
+          python -c "
+          import re
+          from pathlib import Path
+
+          issues = []
+          for md_file in Path('docs').rglob('*.md'):
+              content = md_file.read_text()
+
+              # Check for missing newline at end
+              if not content.endswith('\n'):
+                  issues.append(f'{md_file}: Missing newline at end of file')
+
+              # Check for multiple blank lines
+              if re.search(r'\n{3,}', content):
+                  issues.append(f'{md_file}: Multiple blank lines found')
+
+              # Check for trailing whitespace
+              lines = content.split('\n')
+              for i, line in enumerate(lines, 1):
+                  if line.rstrip() != line and line.strip():
+                      issues.append(f'{md_file}:{i}: Trailing whitespace')
+
+          if issues:
+              print('Markdown formatting issues:')
+              for issue in issues:
+                  print(f'  - {issue}')
+          else:
+              print('Markdown formatting looks good. ✓')
+          "
+
+  # ==========================================
+  # Build Summary
+  # ==========================================
+  summary:
+    name: Documentation Summary
+    runs-on: ubuntu-latest
+    needs: [build, quality]
+    if: always()
+    steps:
+      - name: Create summary
+        run: |
+          echo "## Documentation Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && 'unsuccess' || 'success' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Quality | ${{ needs.quality.result == 'success' && 'unsuccess' || 'success' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "📖 **Deployed to**: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,183 @@
+# Sensitivity Analysis Configuration
+# ==================================
+# Configuration for hyperparameter sensitivity analysis
+
+experiment:
+  name: "sensitivity_analysis"
+  description: "Comprehensive sensitivity analysis for key hyperparameters"
+  tags: ["sensitivity", "hyperparameter", "analysis"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# ==========================================
+# SENSITIVITY ANALYSIS DEFINITIONS
+# ==========================================
+sensitivity:
+  enabled: true
+
+  # Analysis method
+  method: "grid_search" # grid_search, random_search, bayesian
+
+  # Number of runs per configuration
+  n_repeats: 3
+
+  # ==========================================
+  # PARAMETERS TO ANALYZE
+  # ==========================================
+  parameters:
+    # Fairness weight sensitivity
+    fairness_weight:
+      parameter: "training.loss_weights.group_fairness"
+      values: [0.0, 0.1, 0.5, 1.0, 2.0, 5.0]
+      description: "Impact of group fairness weight"
+
+    # Individual fairness weight
+    individual_fairness_weight:
+      parameter: "training.loss_weights.individual_fairness"
+      values: [0.0, 0.1, 0.3, 0.5, 1.0, 2.0]
+      description: "Impact of individual fairness weight"
+
+    # Counterfactual fairness weight
+    counterfactual_weight:
+      parameter: "training.loss_weights.counterfactual_fairness"
+      values: [0.0, 0.1, 0.3, 0.5, 1.0, 2.0]
+      description: "Impact of counterfactual fairness weight"
+
+    # Adversarial debiasing weight
+    adversarial_weight:
+      parameter: "training.loss_weights.adversarial_debiasing"
+      values: [0.0, 0.5, 1.0, 2.0, 5.0]
+      description: "Impact of adversarial debiasing weight"
+
+    # Learning rate sensitivity
+    learning_rate:
+      parameter: "training.optimizer.lr"
+      values: [1.0e-5, 5.0e-5, 1.0e-4, 5.0e-4, 1.0e-3]
+      description: "Impact of learning rate"
+      scale: "log"
+
+    # Latent dimension sensitivity
+    latent_dim:
+      parameter: "model.latent_dim"
+      values: [64, 128, 256, 512, 1024]
+      description: "Impact of latent space dimension"
+
+    # Batch size sensitivity
+    batch_size:
+      parameter: "training.batch_size"
+      values: [32, 64, 128, 256, 512]
+      description: "Impact of batch size"
+
+    # KL divergence weight
+    kl_weight:
+      parameter: "training.loss_weights.kl_divergence"
+      values: [0.0001, 0.001, 0.01, 0.1]
+      description: "Impact of KL divergence weight"
+      scale: "log"
+
+    # Gradient reversal lambda
+    grl_lambda:
+      parameter: "adversarial_debiasing.gradient_reversal.lambda_end"
+      values: [0.1, 0.5, 1.0, 2.0, 5.0]
+      description: "Impact of gradient reversal strength"
+
+    # Lipschitz regularization
+    lipschitz_lambda:
+      parameter: "fairness_paradigms.individual_fairness.lipschitz.lambda_lipschitz"
+      values: [0.01, 0.1, 0.5, 1.0, 2.0]
+      description: "Impact of Lipschitz regularization"
+
+  # ==========================================
+  # MULTI-PARAMETER ANALYSIS
+  # ==========================================
+  multi_parameter:
+    enabled: true
+
+    # Joint analysis of key parameters
+    joint_analysis:
+      - parameters: ["fairness_weight", "adversarial_weight"]
+        grid:
+          fairness_weight: [0.1, 1.0, 5.0]
+          adversarial_weight: [0.5, 1.0, 2.0]
+
+      - parameters: ["learning_rate", "batch_size"]
+        grid:
+          learning_rate: [1.0e-4, 5.0e-4]
+          batch_size: [64, 128, 256]
+
+# Base model settings
+model:
+  name: "FairMultimodalGenerator-Sensitivity"
+  latent_dim: 256
+
+training:
+  n_epochs: 200
+  batch_size: 128
+
+  optimizer:
+    lr: 1.0e-4
+
+# Metrics to track for sensitivity
+tracked_metrics:
+  fidelity:
+    - "reconstruction_loss"
+    - "jensen_shannon_divergence"
+    - "wasserstein_distance"
+
+  fairness:
+    - "demographic_parity_difference"
+    - "equalized_odds_difference"
+    - "consistency_score"
+    - "counterfactual_invariance"
+
+  training:
+    - "training_time"
+    - "convergence_epoch"
+    - "final_loss"
+
+# Results configuration
+results:
+  output_dir: "artifacts/sensitivity_results"
+
+  # Save all runs
+  save_all_runs: true
+
+  # Aggregation
+  aggregation:
+    central_tendency: "mean"
+    dispersion: "std"
+
+  # Visualization
+  visualization:
+    enabled: true
+    plots:
+      - name: "line_plot"
+        description: "Metric vs parameter value"
+
+      - name: "heatmap"
+        description: "Multi-parameter sensitivity heatmap"
+
+      - name: "tornado_plot"
+        description: "Relative sensitivity ranking"
+
+      - name: "scatter_matrix"
+        description: "Parameter interactions"
+
+  # Statistical analysis
+  statistics:
+    compute_correlations: true
+    compute_importance: true
+    importance_method: "mutual_info"
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data-sensitivity"
+    group: "sensitivity_analysis"

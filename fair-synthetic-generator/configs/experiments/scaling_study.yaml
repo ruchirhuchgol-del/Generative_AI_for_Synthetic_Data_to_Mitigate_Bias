@@ -1,0 +1,140 @@
+# Scaling Study Configuration
+# ===========================
+# Configuration for scaling experiments with data size
+
+experiment:
+  name: "scaling_study"
+  description: "Study model performance across different data scales"
+  tags: ["scaling", "data_size", "efficiency"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# ==========================================
+# SCALING STUDY DEFINITIONS
+# ==========================================
+scaling:
+  enabled: true
+
+  # Data sizes to test
+  data_sizes:
+    - 1000
+    - 5000
+    - 10000
+    - 50000
+    - 100000
+    - 500000
+    - 1000000
+
+  # Model sizes to test
+  model_sizes:
+    small:
+      latent_dim: 64
+      encoder_hidden_dims: [64, 128]
+      decoder_hidden_dims: [128, 64]
+
+    medium:
+      latent_dim: 256
+      encoder_hidden_dims: [256, 512]
+      decoder_hidden_dims: [512, 256]
+
+    large:
+      latent_dim: 512
+      encoder_hidden_dims: [512, 1024]
+      decoder_hidden_dims: [1024, 512]
+
+    xlarge:
+      latent_dim: 1024
+      encoder_hidden_dims: [1024, 2048]
+      decoder_hidden_dims: [2048, 1024]
+
+  # Batch sizes for each scale
+  batch_sizes:
+    1000: 32
+    5000: 32
+    10000: 64
+    50000: 128
+    100000: 256
+    500000: 512
+    1000000: 1024
+
+# ==========================================
+# EFFICIENCY METRICS
+# ==========================================
+efficiency:
+  track_memory: true
+  track_time: true
+  track_flops: true
+
+  memory:
+    track_gpu_memory: true
+    track_cpu_memory: true
+
+  time:
+    track_training_time: true
+    track_inference_time: true
+    track_data_loading_time: true
+
+  convergence:
+    track_epochs_to_convergence: true
+    early_stopping_patience: 50
+
+# ==========================================
+# SCALING LAWS ANALYSIS
+# ==========================================
+scaling_laws:
+  enabled: true
+
+  # Fit power law
+  fit_power_law: true
+
+  # Predict performance at larger scales
+  extrapolate: true
+  extrapolation_targets:
+    - 2000000
+    - 5000000
+    - 10000000
+
+# Base settings
+model:
+  name: "FairMultimodalGenerator-Scaling"
+
+training:
+  n_epochs: 500
+
+  early_stopping:
+    enabled: true
+    patience: 50
+
+# Results
+results:
+  output_dir: "artifacts/scaling_results"
+
+  plots:
+    - name: "data_scaling_curve"
+      x: "data_size"
+      y: ["fidelity_score", "fairness_score"]
+
+    - name: "model_scaling_curve"
+      x: "model_params"
+      y: ["fidelity_score", "fairness_score"]
+
+    - name: "compute_efficiency"
+      x: "training_time"
+      y: ["fidelity_score", "fairness_score"]
+
+    - name: "memory_usage"
+      x: "data_size"
+      y: "peak_memory"
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data-scaling"
+    group: "scaling_study"

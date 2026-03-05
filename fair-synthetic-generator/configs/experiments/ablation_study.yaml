@@ -1,0 +1,200 @@
+# Ablation Study Configuration
+# ============================
+# Configuration for systematic ablation studies
+
+experiment:
+  name: "ablation_study"
+  description: "Systematic ablation study to understand component contributions"
+  tags: ["ablation", "analysis", "research"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# ==========================================
+# ABLATION STUDY DEFINITIONS
+# ==========================================
+ablation:
+  enabled: true
+
+  # Run all ablations automatically
+  run_all: true
+
+  # Individual ablation experiments
+  experiments:
+    # Ablation 1: No Adversarial Debiasing
+    no_adversarial:
+      name: "ablation_no_adversarial"
+      description: "Remove adversarial debiasing component"
+
+      overrides:
+        adversarial_debiasing:
+          enabled: false
+
+        training:
+          loss_weights:
+            adversarial_debiasing: 0.0
+
+    # Ablation 2: No Group Fairness
+    no_group_fairness:
+      name: "ablation_no_group_fairness"
+      description: "Remove group fairness constraints"
+
+      overrides:
+        fairness_paradigms:
+          group_fairness:
+            enabled: false
+
+        training:
+          loss_weights:
+            group_fairness: 0.0
+
+    # Ablation 3: No Individual Fairness
+    no_individual_fairness:
+      name: "ablation_no_individual_fairness"
+      description: "Remove individual fairness constraints"
+
+      overrides:
+        fairness_paradigms:
+          individual_fairness:
+            enabled: false
+
+        training:
+          loss_weights:
+            individual_fairness: 0.0
+
+    # Ablation 4: No Counterfactual Fairness
+    no_counterfactual_fairness:
+      name: "ablation_no_counterfactual"
+      description: "Remove counterfactual fairness constraints"
+
+      overrides:
+        fairness_paradigms:
+          counterfactual_fairness:
+            enabled: false
+
+        training:
+          loss_weights:
+            counterfactual_fairness: 0.0
+
+    # Ablation 5: Only Group Fairness
+    only_group_fairness:
+      name: "ablation_only_group"
+      description: "Keep only group fairness, remove others"
+
+      overrides:
+        fairness_paradigms:
+          individual_fairness:
+            enabled: false
+          counterfactual_fairness:
+            enabled: false
+
+        training:
+          loss_weights:
+            individual_fairness: 0.0
+            counterfactual_fairness: 0.0
+
+    # Ablation 6: No Multimodal Fusion
+    no_multimodal_fusion:
+      name: "ablation_no_fusion"
+      description: "Remove cross-modal attention fusion"
+
+      overrides:
+        model:
+          fusion:
+            method: "concatenation"
+
+    # Ablation 7: Smaller Latent Space
+    smaller_latent:
+      name: "ablation_small_latent"
+      description: "Test with smaller latent dimension"
+
+      overrides:
+        model:
+          latent_dim: 64
+
+    # Ablation 8: Larger Latent Space
+    larger_latent:
+      name: "ablation_large_latent"
+      description: "Test with larger latent dimension"
+
+      overrides:
+        model:
+          latent_dim: 1024
+
+    # Ablation 9: No KL Annealing
+    no_kl_annealing:
+      name: "ablation_no_kl_annealing"
+      description: "Remove KL annealing schedule"
+
+      overrides:
+        model:
+          generator:
+            vae:
+              kl_annealing: false
+
+    # Ablation 10: Single Modality (Tabular Only)
+    tabular_only:
+      name: "ablation_tabular_only"
+      description: "Use only tabular modality"
+
+      overrides:
+        model:
+          encoders:
+            text:
+              enabled: false
+            image:
+              enabled: false
+          decoders:
+            text:
+              enabled: false
+            image:
+              enabled: false
+
+# Base model settings for ablation
+model:
+  name: "FairMultimodalGenerator-Ablation"
+  latent_dim: 256
+
+training:
+  n_epochs: 300
+  batch_size: 128
+
+  loss_weights:
+    reconstruction: 1.0
+    group_fairness: 1.0
+    individual_fairness: 0.5
+    counterfactual_fairness: 0.5
+    adversarial_debiasing: 1.0
+
+# Results aggregation
+results:
+  output_dir: "artifacts/ablation_results"
+  aggregate_metrics:
+    - "fidelity_score"
+    - "fairness_score"
+    - "demographic_parity_difference"
+    - "equalized_odds_difference"
+    - "counterfactual_invariance"
+    - "consistency_score"
+
+  comparison_method: "paired_t_test"
+  significance_level: 0.05
+
+  visualization:
+    enabled: true
+    plots:
+      - "contribution_bar_chart"
+      - "metric_heatmap"
+      - "rank_comparison"
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data-ablation"
+    group: "ablation_study"

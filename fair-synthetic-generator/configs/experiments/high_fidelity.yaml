@@ -1,0 +1,152 @@
+# High Fidelity Priority Experiment
+# =================================
+# Configuration prioritizing data fidelity over strict fairness
+
+experiment:
+  name: "high_fidelity"
+  description: "Experiment prioritizing statistical fidelity and data quality"
+  tags: ["fidelity_priority", "quality_focus", "realistic"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# Model configuration for fidelity
+model:
+  name: "FairMultimodalGenerator-HighFidelity"
+  latent_dim: 512
+
+  generator:
+    type: "vae_gan"
+
+    gan:
+      feature_matching: true
+      gradient_penalty: true
+      gp_weight: 15.0 # Higher for stability
+
+  encoders:
+    tabular:
+      hidden_dims: [512, 1024, 1024, 512] # Deeper network
+
+    text:
+      hidden_dim: 1024
+      num_layers: 8
+
+    image:
+      hidden_dims: [64, 128, 256, 512, 512]
+
+  decoders:
+    tabular:
+      hidden_dims: [512, 1024, 1024, 512]
+
+    text:
+      hidden_dim: 1024
+      num_layers: 8
+
+    image:
+      diffusion:
+        num_steps: 2000 # More diffusion steps
+
+# Training for fidelity
+training:
+  n_epochs: 2000
+  batch_size: 64
+
+  optimizer:
+    lr: 1.0e-4
+    weight_decay: 0.001
+
+  loss_weights:
+    reconstruction: 2.0 # Higher priority
+    kl_divergence: 0.002
+    tabular_reconstruction: 1.5
+    text_reconstruction: 1.5
+    image_reconstruction: 1.5
+    adversarial_g: 1.5
+    feature_matching: 1.0
+    group_fairness: 0.2 # Lower fairness weight
+    individual_fairness: 0.1
+    counterfactual_fairness: 0.1
+    adversarial_debiasing: 0.2
+
+  early_stopping:
+    patience: 100
+    monitor: "val_reconstruction_loss"
+
+# Relaxed fairness for fidelity
+fairness_paradigms:
+  group_fairness:
+    enabled: true
+    weight: 0.2
+
+    metrics:
+      demographic_parity:
+        threshold: 0.15 # Relaxed
+
+      equalized_odds:
+        threshold: 0.15
+
+      disparate_impact:
+        min_ratio: 0.7
+
+  individual_fairness:
+    enabled: true
+    weight: 0.1
+
+    lipschitz:
+      lambda_lipschitz: 0.05
+
+  counterfactual_fairness:
+    enabled: true
+    weight: 0.1
+
+    evaluation:
+      threshold: 0.15
+
+# Weaker adversarial debiasing
+adversarial_debiasing:
+  enabled: true
+  weight: 0.2
+
+  training:
+    n_adversary_steps: 1
+
+  gradient_reversal:
+    lambda_end: 0.3
+
+# Fidelity-focused evaluation
+evaluation:
+  n_samples: 10000
+
+fidelity:
+  enabled: true
+
+  statistical_similarity:
+    marginal:
+      - name: "jensen_shannon_divergence"
+        threshold: 0.05 # Stricter for fidelity
+
+      - name: "wasserstein_distance"
+        threshold: 0.02
+
+  ml_utility:
+    enabled: true
+    train_on_synthetic:
+      model_types:
+        - "logistic_regression"
+        - "random_forest"
+        - "xgboost"
+        - "mlp"
+        - "tabnet"
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data"
+    name: "${experiment.name}"
+    tags: "${experiment.tags}"

@@ -1,0 +1,343 @@
+# Continuous Integration Workflow
+# ================================
+# Runs on every push and pull request to main branches
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "release/*"]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+
+env:
+  PYTHON_VERSION: "3.10"
+  POETRY_VERSION: "1.7.1"
+
+jobs:
+  # ==========================================
+  # Code Quality Checks
+  # ==========================================
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black isort mypy
+
+      - name: Run Ruff (linting)
+        run: ruff check src/ tests/ scripts/
+
+      - name: Check Black formatting
+        run: black --check src/ tests/ scripts/
+
+      - name: Check isort
+        run: isort --check-only --diff src/ tests/ scripts/
+
+  # ==========================================
+  # Type Checking
+  # ==========================================
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e .[dev] || pip install -r requirements-dev.txt
+
+      - name: Run MyPy
+        run: mypy src/ --ignore-missing-imports --no-error-summary || true
+        continue-on-error: true
+
+  # ==========================================
+  # Unit Tests
+  # ==========================================
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [lint]
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-xdist
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit/ \
+            -v \
+            --tb=short \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            -n auto
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: unit-tests-${{ matrix.python-version }}
+          fail_ci_if_error: false
+
+  # ==========================================
+  # Integration Tests
+  # ==========================================
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [test-unit]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run integration tests
+        run: |
+          pytest tests/integration/ \
+            -v \
+            --tb=short \
+            --cov=src \
+            --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: integration
+          name: integration-tests
+
+  # ==========================================
+  # End-to-End Tests (Minimal)
+  # ==========================================
+  test-e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [test-integration]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run E2E tests with quick test config
+        run: |
+          pytest tests/e2e/ -v --tb=short
+        env:
+          CONFIG_NAME: quick_test
+
+  # ==========================================
+  # Security Scan
+  # ==========================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+
+      - name: Run Bandit security check
+        run: bandit -r src/ -ll --skip B101,B311
+        continue-on-error: true
+
+      - name: Check dependencies for vulnerabilities
+        run: safety check -r requirements.txt || true
+        continue-on-error: true
+
+  # ==========================================
+  # Configuration Validation
+  # ==========================================
+  validate-configs:
+    name: Validate Configurations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Validate YAML configs
+        run: |
+          python -c "
+          import yaml
+          from pathlib import Path
+
+          config_dir = Path('configs')
+          errors = []
+
+          for yaml_file in config_dir.rglob('*.yaml'):
+              try:
+                  with open(yaml_file) as f:
+                      yaml.safe_load(f)
+                  print(f'✓ {yaml_file}')
+              except Exception as e:
+                  errors.append(f'{yaml_file}: {e}')
+                  print(f'✗ {yaml_file}: {e}')
+
+          if errors:
+              raise SystemExit(1)
+          "
+
+  # ==========================================
+  # Build Test
+  # ==========================================
+  build:
+    name: Build Test
+    runs-on: ubuntu-latest
+    needs: [test-unit, test-integration]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build wheel setuptools
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: |
+          pip install twine
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # ==========================================
+  # Docker Build Test
+  # ==========================================
+  docker:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: fair-synthetic-generator:ci-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==========================================
+  # Summary Job
+  # ==========================================
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, test-unit, test-integration, test-e2e, security, build]
+    if: always()
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result == 'success' && 'done' || 'not done' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.test-unit.result == 'success' && 'done' || 'not done' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration Tests | ${{ needs.test-integration.result == 'success' && 'done' || 'not done' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.test-e2e.result == 'success' && 'done' || 'not done' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result == 'success' && 'done' || 'not done' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && 'done' || 'not done' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if required jobs failed
+        if: contains(needs.*.result, 'failure')
+        run: exit 1

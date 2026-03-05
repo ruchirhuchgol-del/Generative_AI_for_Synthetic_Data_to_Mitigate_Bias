@@ -1,0 +1,155 @@
+# Multimodal Full Experiment Configuration
+# =========================================
+# Configuration for full multimodal generation with all modalities
+
+experiment:
+  name: "multimodal_full"
+  description: "Full multimodal experiment with tabular, text, and image modalities"
+  tags: ["multimodal", "full", "complete"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# Enhanced model for full multimodal
+model:
+  name: "FairMultimodalGenerator-Full"
+  latent_dim: 512
+
+  # Cross-modal fusion
+  fusion:
+    method: "cross_attention"
+    num_layers: 6
+    num_heads: 8
+    dropout: 0.1
+    use_positional_encoding: true
+
+  encoders:
+    tabular:
+      type: "tabtransformer"
+      hidden_dims: [256, 512, 512]
+      num_heads: 8
+      num_layers: 4
+
+    text:
+      type: "transformer"
+      hidden_dim: 768
+      num_layers: 8
+      num_heads: 12
+      max_length: 512
+
+    image:
+      type: "vae"
+      resolution: 256
+      hidden_dims: [64, 128, 256, 512]
+      attention_layers: [2, 3]
+
+  decoders:
+    tabular:
+      hidden_dims: [512, 512, 256]
+
+    text:
+      hidden_dim: 768
+      num_layers: 8
+      temperature: 0.9
+
+    image:
+      type: "diffusion"
+      diffusion:
+        num_steps: 1000
+
+# Training for multimodal
+training:
+  n_epochs: 1500
+  batch_size: 64
+  gradient_accumulation_steps: 2
+
+  loss_weights:
+    reconstruction: 1.0
+    tabular_reconstruction: 1.0
+    text_reconstruction: 1.0
+    image_reconstruction: 1.0
+    kl_divergence: 0.001
+    group_fairness: 1.0
+    individual_fairness: 0.5
+    counterfactual_fairness: 0.5
+    adversarial_debiasing: 1.0
+    cross_modal_consistency: 0.3
+
+# Cross-modal consistency
+multimodal:
+  cross_modal_consistency:
+    enabled: true
+    weight: 0.3
+
+    alignment_methods:
+      - "contrastive_learning"
+      - "cycle_consistency"
+
+  latent_alignment:
+    enabled: true
+    method: "mixture_of_experts"
+
+# Full data schema
+schema:
+  tabular:
+    enabled: true
+    numerical:
+      - name: "age"
+        type: "continuous"
+        min: 18
+        max: 100
+      - name: "income"
+        type: "continuous"
+        min: 0
+        max: 500000
+    categorical:
+      - name: "gender"
+        type: "binary"
+        values: ["male", "female"]
+      - name: "race"
+        type: "nominal"
+        values: ["white", "black", "asian", "hispanic", "other"]
+
+  text:
+    enabled: true
+    fields:
+      - name: "personal_statement"
+        max_length: 512
+      - name: "employment_history"
+        max_length: 1024
+
+  image:
+    enabled: true
+    fields:
+      - name: "profile_image"
+        resolution: [256, 256]
+        channels: 3
+
+# Full evaluation
+evaluation:
+  n_samples: 10000
+
+  fidelity:
+    enabled: true
+    statistical_similarity:
+      enabled: true
+    ml_utility:
+      enabled: true
+
+  multimodal:
+    enabled: true
+    cross_modal:
+      - name: "cross_modal_alignment"
+        threshold: 0.8
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data-multimodal"
+    name: "${experiment.name}"

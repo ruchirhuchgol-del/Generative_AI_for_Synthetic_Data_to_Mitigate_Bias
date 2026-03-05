@@ -1,0 +1,61 @@
+# Baseline Experiment Configuration
+# =================================
+# Standard configuration for baseline experiments
+
+# Experiment metadata
+experiment:
+  name: "baseline"
+  description: "Baseline experiment with balanced fidelity-fairness trade-off"
+  tags: ["baseline", "balanced", "reference"]
+  version: "1.0.0"
+
+# Inherit from default configs
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# Override specific settings for baseline
+model:
+  name: "FairMultimodalGenerator-Baseline"
+  latent_dim: 256 # Smaller for baseline
+
+training:
+  n_epochs: 500
+  batch_size: 64
+
+  optimizer:
+    lr: 2.0e-4
+
+  loss_weights:
+    reconstruction: 1.0
+    kl_divergence: 0.001
+    group_fairness: 0.5
+    individual_fairness: 0.3
+    counterfactual_fairness: 0.3
+    adversarial_debiasing: 0.5
+
+fairness_paradigms:
+  group_fairness:
+    weight: 0.5
+
+  individual_fairness:
+    weight: 0.3
+
+  counterfactual_fairness:
+    weight: 0.3
+
+# Evaluation settings
+evaluation:
+  n_samples: 5000
+  compute_confidence_intervals: true
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data"
+    name: "${experiment.name}"
+    tags: "${experiment.tags}"

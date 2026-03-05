@@ -1,0 +1,82 @@
+# Quick Test Experiment Configuration
+# ====================================
+# Minimal configuration for quick testing and debugging
+
+experiment:
+  name: "quick_test"
+  description: "Quick test configuration for debugging and CI/CD"
+  tags: ["test", "debug", "minimal"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# Minimal model for testing
+model:
+  name: "FairMultimodalGenerator-Test"
+  latent_dim: 32
+
+  encoders:
+    tabular:
+      hidden_dims: [32, 64]
+    text:
+      hidden_dim: 128
+      num_layers: 1
+      num_heads: 2
+    image:
+      hidden_dims: [16, 32]
+
+  decoders:
+    tabular:
+      hidden_dims: [64, 32]
+    text:
+      hidden_dim: 128
+      num_layers: 1
+    image:
+      hidden_dims: [32, 16]
+
+# Minimal training
+training:
+  n_epochs: 5
+  batch_size: 8
+
+  optimizer:
+    lr: 1.0e-3
+
+  early_stopping:
+    enabled: false
+
+  checkpointing:
+    save_every_n_epochs: 1
+
+# Minimal fairness
+fairness_paradigms:
+  group_fairness:
+    enabled: true
+    weight: 0.5
+  individual_fairness:
+    enabled: false
+  counterfactual_fairness:
+    enabled: false
+
+# Minimal data
+generation:
+  n_samples: 100
+
+# Minimal evaluation
+evaluation:
+  n_samples: 50
+  compute_confidence_intervals: false
+
+# Disable heavy logging
+logging:
+  tensorboard:
+    enabled: false
+  wandb:
+    enabled: false
+  console:
+    level: "DEBUG"

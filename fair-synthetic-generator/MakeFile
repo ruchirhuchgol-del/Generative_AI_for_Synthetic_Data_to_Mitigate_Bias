@@ -1,0 +1,152 @@
+
+.PHONY: install dev test lint format clean docs run-api train generate evaluate help
+
+# Default target
+help:
+	@echo "Fair Synthetic Data Generator - Available Commands"
+	@echo "=================================================="
+	@echo ""
+	@echo "Installation:"
+	@echo "  make install        Install package"
+	@echo "  make dev            Install with dev dependencies"
+	@echo "  make install-gpu    Install with GPU support (CUDA)"
+	@echo ""
+	@echo "Development:"
+	@echo "  make test           Run all tests"
+	@echo "  make test-cov       Run tests with coverage"
+	@echo "  make lint           Run linting checks"
+	@echo "  make format         Format code with black and isort"
+	@echo "  make type-check     Run mypy type checking"
+	@echo ""
+	@echo "Operations:"
+	@echo "  make train          Train the model"
+	@echo "  make generate       Generate synthetic data"
+	@echo "  make evaluate       Run evaluation pipeline"
+	@echo "  make run-api        Start the API server"
+	@echo ""
+	@echo "Documentation:"
+	@echo "  make docs           Build and serve documentation"
+	@echo "  make docs-build     Build documentation"
+	@echo ""
+	@echo "Maintenance:"
+	@echo "  make clean          Clean cache and build files"
+	@echo "  make clean-all      Deep clean including data and checkpoints"
+
+# Installation
+install:
+	pip install -e .
+
+dev:
+	pip install -e ".[dev]"
+
+install-gpu:
+	pip install torch --index-url https://download.pytorch.org/whl/cu118
+	pip install -e ".[dev]"
+
+# Testing
+test:
+	pytest tests/ -v
+
+test-cov:
+	pytest tests/ -v --cov=src --cov-report=html --cov-report=term
+
+test-unit:
+	pytest tests/unit/ -v
+
+test-integration:
+	pytest tests/integration/ -v -m integration
+
+test-gpu:
+	pytest tests/ -v -m gpu
+
+# Code Quality
+lint:
+	flake8 src/ tests/ scripts/
+	ruff check src/ tests/ scripts/
+
+format:
+	black src/ tests/ scripts/
+	isort src/ tests/ scripts/
+
+type-check:
+	mypy src/
+
+check: format lint type-check test
+	@echo "All checks passed!"
+
+# Training & Inference
+train:
+	python scripts/training/train.py --config configs/default/training_config.yaml
+
+train-gpu:
+	python scripts/training/train.py --config configs/default/training_config.yaml --device cuda
+
+generate:
+	python scripts/synthesis/generate_synthetic_data.py --config configs/default/generation_config.yaml
+
+evaluate:
+	python scripts/evaluation/generate_report.py --output artifacts/reports/
+
+evaluate-fairness:
+	python scripts/evaluation/evaluate_fairness.py --config configs/default/fairness_config.yaml
+
+# API
+run-api:
+	uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
+
+run-api-prod:
+	gunicorn src.api.app:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+# Documentation
+docs:
+	mkdocs serve
+
+docs-build:
+	mkdocs build
+
+# Cleanup
+clean:
+	rm -rf __pycache__ .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov
+	rm -rf dist build *.egg-info
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+
+clean-all: clean
+	rm -rf data/raw/* data/processed/* data/synthetic/*
+	rm -rf checkpoints/experiments/*
+	rm -rf logs/* artifacts/*
+
+# Docker
+docker-build:
+	docker build -t fair-synthetic-generator:latest .
+
+docker-run:
+	docker run -p 8000:8000 -v $(PWD)/data:/app/data fair-synthetic-generator:latest
+
+docker-compose-up:
+	docker-compose up -d
+
+docker-compose-down:
+	docker-compose down
+
+# Experiment tracking
+wandb-login:
+	wandb login
+
+tensorboard:
+	tensorboard --logdir logs/tensorboard --port 6006
+
+# Pre-commit
+pre-commit-install:
+	pre-commit install
+
+pre-commit-run:
+	pre-commit run --all-files
+
+# Setup
+setup-data:
+	python scripts/data/generate_synthetic_schema.py
+	python scripts/data/preprocess_raw_data.py
+
+download-pretrained:
+	bash scripts/setup/download_pretrained.sh

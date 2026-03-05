@@ -1,0 +1,372 @@
+# Evaluation Configuration
+# =======================
+# Defines evaluation metrics, reporting, and validation settings
+
+# ==========================================
+# EVALUATION MODES
+# ==========================================
+evaluation_modes:
+  # Quick evaluation (during training)
+  quick:
+    enabled: true
+    metrics_subset: ["reconstruction_loss", "demographic_parity"]
+    n_samples: 1000
+
+  # Full evaluation (after training)
+  full:
+    enabled: true
+    metrics_subset: "all"
+    n_samples: 10000
+
+  # Comprehensive evaluation (for papers/reports)
+  comprehensive:
+    enabled: false
+    metrics_subset: "all"
+    n_samples: 50000
+    bootstrap_samples: 1000
+
+# ==========================================
+# FIDELITY METRICS
+# ==========================================
+fidelity:
+  enabled: true
+
+  # Statistical Similarity
+  statistical_similarity:
+    # Marginal distributions
+    marginal:
+      - name: "jensen_shannon_divergence"
+        threshold: 0.1
+
+      - name: "wasserstein_distance"
+        threshold: 0.05
+        normalize: true
+
+      - name: "kolmogorov_smirnov"
+        threshold: 0.1
+
+    # Joint distributions
+    joint:
+      - name: "correlation_matrix_difference"
+        threshold: 0.1
+        method: "frobenius_norm"
+
+      - name: "mutual_information"
+        threshold: 0.1
+
+  # Distribution Matching
+  distribution_matching:
+    # Numerical features
+    numerical:
+      method: "histogram" # histogram, kde, qq_plot
+      n_bins: 50
+      visualize: true
+
+    # Categorical features
+    categorical:
+      method: "frequency"
+      visualize: true
+
+    # Text features
+    text:
+      methods:
+        - "perplexity"
+        - "bleu_score"
+        - "self_bleu"
+      reference_corpus: "train"
+
+    # Image features
+    image:
+      methods:
+        - "fid_score" # Fréchet Inception Distance
+        - "inception_score"
+        - "kid_score" # Kernel Inception Distance
+      feature_extractor: "inception_v3"
+
+  # Machine Learning Utility
+  ml_utility:
+    enabled: true
+
+    train_on_synthetic:
+      model_types:
+        - "logistic_regression"
+        - "random_forest"
+        - "xgboost"
+        - "mlp"
+      metrics:
+        - "accuracy"
+        - "f1_score"
+        - "auc_roc"
+
+    train_on_real_test_on_synthetic:
+      enabled: true
+
+    train_on_synthetic_test_on_real:
+      enabled: true
+
+  # Shape Similarity
+  shape_similarity:
+    - name: "pca_correlation"
+      n_components: 50
+      threshold: 0.9
+
+    - name: "tsne_visualization"
+      perplexity: 30
+      n_iter: 1000
+
+# ==========================================
+# FAIRNESS METRICS
+# ==========================================
+fairness:
+  enabled: true
+
+  # Group Fairness Metrics
+  group_fairness:
+    demographic_parity:
+      - name: "demographic_parity_difference"
+        description: "Maximum difference in positive rate across groups"
+        threshold: 0.05
+
+      - name: "demographic_parity_ratio"
+        description: "Minimum ratio of positive rates across groups"
+        threshold: 0.8
+
+    equalized_odds:
+      - name: "equalized_odds_difference"
+        description: "Maximum difference in TPR and FPR across groups"
+        threshold: 0.05
+
+      - name: "true_positive_rate_difference"
+        threshold: 0.05
+
+      - name: "false_positive_rate_difference"
+        threshold: 0.05
+
+    disparate_impact:
+      - name: "disparate_impact_ratio"
+        threshold: 0.8
+        description: "Ratio of favorable outcomes between groups"
+
+    statistical_measures:
+      - name: "statistical_parity"
+      - name: "calibration_score"
+
+  # Individual Fairness Metrics
+  individual_fairness:
+    - name: "consistency_score"
+      k_neighbors: 5
+      threshold: 0.9
+      description: "Similar predictions for similar individuals"
+
+    - name: "lipschitz_estimate"
+      threshold: 1.0
+
+    - name: "theil_index"
+      description: "Inequality measure for individual predictions"
+
+    - name: "generalized_entropy_index"
+      alpha: 2
+
+  # Counterfactual Fairness Metrics
+  counterfactual_fairness:
+    - name: "counterfactual_invariance"
+      threshold: 0.95
+      description: "Predictions unchanged under counterfactual perturbation"
+
+    - name: "counterfactual_error_rate"
+      threshold: 0.05
+
+    - name: "effect_size"
+      threshold: 0.1
+
+  # Intersectional Analysis
+  intersectional:
+    enabled: true
+    intersection_groups:
+      - ["gender", "race"]
+      - ["gender", "age_group"]
+      - ["race", "age_group"]
+    metrics:
+      - "demographic_parity_difference"
+      - "equalized_odds_difference"
+
+# ==========================================
+# PRIVACY METRICS
+# ==========================================
+privacy:
+  enabled: true
+
+  # Identity Disclosure Risk
+  identity_disclosure:
+    - name: "singling_out_risk"
+      method: "k_anonymity"
+      k: 5
+      threshold: 0.1
+
+    - name: "linkability_risk"
+      threshold: 0.1
+
+    - name: "uniqueness_ratio"
+      threshold: 0.01
+
+  # Attribute Disclosure Risk
+  attribute_disclosure:
+    - name: "attribute_inference_risk"
+      model_type: "random_forest"
+      sensitive_attributes: ["income", "credit_score"]
+      threshold: 0.1
+
+    - name: "membership_inference"
+      model_type: "neural_network"
+      threshold: 0.5
+
+  # Distance-based Metrics
+  distance_based:
+    - name: "nearest_neighbor_distance_ratio"
+      threshold: 0.8
+      description: "Ratio of synthetic to real nearest neighbor distances"
+
+    - name: "distance_to_closest_record"
+      percentile: 5
+      threshold: 0.01
+
+# ==========================================
+# MULTIMODAL METRICS
+# ==========================================
+multimodal:
+  enabled: true
+
+  # Cross-modal Consistency
+  cross_modal:
+    - name: "cross_modal_alignment"
+      threshold: 0.8
+
+    - name: "modal_completeness"
+      threshold: 0.95
+
+  # Latent Space Quality
+  latent_space:
+    - name: "latent_disentanglement"
+      method: "beta_vae_metric"
+      threshold: 0.5
+
+    - name: "latent_traversal_smoothness"
+      threshold: 0.9
+
+    - name: "latent_interpolation_quality"
+      threshold: 0.8
+
+# ==========================================
+# REPORTING
+# ==========================================
+reporting:
+  # Output formats
+  formats:
+    - "html"
+    - "json"
+    - "markdown"
+
+  # Output directory
+  output_dir: "artifacts/reports"
+
+  # Report sections
+  sections:
+    - "executive_summary"
+    - "data_quality"
+    - "fidelity_analysis"
+    - "fairness_analysis"
+    - "privacy_analysis"
+    - "multimodal_analysis"
+    - "recommendations"
+    - "appendix"
+
+  # Visualization settings
+  visualization:
+    enabled: true
+    style: "seaborn-v0_8-whitegrid"
+    figure_size: [12, 8]
+    dpi: 150
+    color_palette: "colorblind"
+
+    plot_types:
+      - "distribution_comparison"
+      - "correlation_heatmap"
+      - "fairness_radar"
+      - "privacy_risk_plot"
+      - "latent_space_visualization"
+
+  # Threshold comparison table
+  threshold_comparison:
+    enabled: true
+    highlight_failures: true
+
+  # Statistical tests
+  statistical_tests:
+    significance_level: 0.05
+    multiple_testing_correction: "bonferroni"
+
+# ==========================================
+# BENCHMARKING
+# ==========================================
+benchmarking:
+  enabled: false
+
+  # Baseline methods
+  baselines:
+    - name: "random_sampling"
+      enabled: true
+
+    - name: "smote"
+      enabled: true
+
+    - name: "ctgan"
+      enabled: false
+
+    - name: "tvae"
+      enabled: false
+
+  # Comparison metrics
+  comparison_metrics:
+    - "fidelity_score"
+    - "fairness_score"
+    - "privacy_score"
+    - "composite_score"
+
+  # Composite score weights
+  composite_weights:
+    fidelity: 0.4
+    fairness: 0.4
+    privacy: 0.2
+
+# ==========================================
+# VALIDATION
+# ==========================================
+validation:
+  # Data integrity checks
+  integrity_checks:
+    - name: "schema_compliance"
+      enabled: true
+
+    - name: "value_range_check"
+      enabled: true
+
+    - name: "missing_value_check"
+      enabled: true
+      max_missing_ratio: 0.1
+
+    - name: "duplicate_check"
+      enabled: true
+
+  # Statistical tests
+  statistical_validation:
+    - name: "chi_square_test"
+      categorical_threshold: 0.05
+
+    - name: "ks_test"
+      numerical_threshold: 0.05
+
+  # Expert review
+  expert_review:
+    enabled: false
+    sample_size: 100
+    attributes_to_review: "all"

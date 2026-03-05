@@ -1,0 +1,402 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "tabular_schema.json",
+    "title": "Tabular Data Schema",
+    "description": "Schema definition for tabular data in the Fair Synthetic Data Generator",
+    "version": "1.0.0",
+    "definitions": {
+        "numerical_feature": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Feature name"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "continuous",
+                        "discrete"
+                    ],
+                    "description": "Numerical feature type"
+                },
+                "min": {
+                    "type": "number",
+                    "description": "Minimum allowed value"
+                },
+                "max": {
+                    "type": "number",
+                    "description": "Maximum allowed value"
+                },
+                "distribution": {
+                    "type": "string",
+                    "enum": [
+                        "uniform",
+                        "normal",
+                        "log_normal",
+                        "exponential",
+                        "beta",
+                        "gamma"
+                    ],
+                    "description": "Statistical distribution for generation"
+                },
+                "mean": {
+                    "type": "number",
+                    "description": "Mean for normal/log_normal distribution"
+                },
+                "std": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Standard deviation for normal/log_normal distribution"
+                },
+                "missing_rate": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 0,
+                    "description": "Expected proportion of missing values"
+                },
+                "sensitive": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether this is a sensitive attribute"
+                },
+                "privileged_value": {
+                    "type": "number",
+                    "description": "Value considered privileged (for fairness)"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ]
+        },
+        "categorical_feature": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Feature name"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "binary",
+                        "nominal",
+                        "ordinal"
+                    ],
+                    "description": "Categorical feature type"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "description": "Possible values for the feature"
+                },
+                "order": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "description": "Order mapping for ordinal features"
+                },
+                "probabilities": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    },
+                    "description": "Probability distribution over values"
+                },
+                "missing_rate": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 0
+                },
+                "sensitive": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "privileged_value": {
+                    "type": "string",
+                    "description": "Value considered privileged"
+                }
+            },
+            "required": [
+                "name",
+                "type",
+                "values"
+            ]
+        },
+        "derived_feature": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string",
+                    "description": "Source feature name"
+                },
+                "derivation_type": {
+                    "type": "string",
+                    "enum": [
+                        "bin",
+                        "transform",
+                        "compute"
+                    ]
+                },
+                "bins": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "description": "Binning definition [[min, max, label], ...]"
+                },
+                "transform": {
+                    "type": "string",
+                    "description": "Transformation expression"
+                },
+                "sensitive": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": [
+                "name",
+                "source",
+                "derivation_type"
+            ]
+        }
+    },
+    "type": "object",
+    "properties": {
+        "schema_name": {
+            "type": "string",
+            "description": "Name of the schema"
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": {
+            "type": "string"
+        },
+        "numerical_features": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/numerical_feature"
+            }
+        },
+        "categorical_features": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/categorical_feature"
+            }
+        },
+        "derived_features": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/derived_feature"
+            }
+        },
+        "target_variable": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "binary",
+                        "multiclass",
+                        "regression"
+                    ]
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "positive_class": {
+                    "type": "string",
+                    "description": "The positive class for binary classification"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ]
+        },
+        "protected_attributes": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "privileged_value": {
+                        "description": "Value considered privileged"
+                    },
+                    "unprivileged_values": {
+                        "type": "array",
+                        "description": "Values considered unprivileged"
+                    }
+                },
+                "required": [
+                    "name",
+                    "privileged_value"
+                ]
+            }
+        },
+        "correlations": {
+            "type": "object",
+            "description": "Known correlations to preserve",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1
+                }
+            }
+        },
+        "constraints": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "range",
+                            "equality",
+                            "inequality",
+                            "custom"
+                        ]
+                    },
+                    "features": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "expression": {
+                        "type": "string",
+                        "description": "Constraint expression"
+                    }
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "schema_name",
+        "version"
+    ],
+    "examples": [
+        {
+            "schema_name": "employment_data",
+            "version": "1.0.0",
+            "description": "Employment dataset schema",
+            "numerical_features": [
+                {
+                    "name": "age",
+                    "type": "continuous",
+                    "min": 18,
+                    "max": 100,
+                    "distribution": "uniform"
+                },
+                {
+                    "name": "income",
+                    "type": "continuous",
+                    "min": 0,
+                    "max": 500000,
+                    "distribution": "log_normal",
+                    "mean": 10.5,
+                    "std": 0.8
+                }
+            ],
+            "categorical_features": [
+                {
+                    "name": "gender",
+                    "type": "binary",
+                    "values": [
+                        "male",
+                        "female"
+                    ],
+                    "sensitive": true,
+                    "privileged_value": "male"
+                },
+                {
+                    "name": "education",
+                    "type": "ordinal",
+                    "values": [
+                        "high_school",
+                        "bachelor",
+                        "master",
+                        "phd"
+                    ],
+                    "order": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ]
+                }
+            ],
+            "target_variable": {
+                "name": "hired",
+                "type": "binary",
+                "values": [
+                    "no",
+                    "yes"
+                ],
+                "positive_class": "yes"
+            },
+            "protected_attributes": [
+                {
+                    "name": "gender",
+                    "privileged_value": "male",
+                    "unprivileged_values": [
+                        "female"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+torch
+torchvision
+torchaudio
+tensorflow
+numpy
+pandas
+scikit-learn
+fastapi
+uvicorn
+pyyaml
+matplotlib
+seaborn
+tqdm
+pydantic
+requests
+tensorboard
+wandb

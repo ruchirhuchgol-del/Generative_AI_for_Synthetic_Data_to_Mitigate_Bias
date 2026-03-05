@@ -1,0 +1,539 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "image_schema.json",
+    "title": "Image Data Schema",
+    "description": "Schema definition for image data in the Fair Synthetic Data Generator",
+    "version": "1.0.0",
+    "definitions": {
+        "image_dimensions": {
+            "type": "object",
+            "properties": {
+                "width": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Image width in pixels"
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Image height in pixels"
+                },
+                "channels": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        3,
+                        4
+                    ],
+                    "description": "Number of color channels"
+                },
+                "format": {
+                    "type": "string",
+                    "enum": [
+                        "rgb",
+                        "rgba",
+                        "grayscale",
+                        "binary"
+                    ],
+                    "description": "Image format"
+                }
+            },
+            "required": [
+                "width",
+                "height",
+                "channels"
+            ]
+        },
+        "image_field": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Field name"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Field description"
+                },
+                "dimensions": {
+                    "$ref": "#/definitions/image_dimensions"
+                },
+                "color_mode": {
+                    "type": "string",
+                    "enum": [
+                        "rgb",
+                        "grayscale",
+                        "binary"
+                    ],
+                    "default": "rgb"
+                },
+                "bit_depth": {
+                    "type": "integer",
+                    "enum": [
+                        8,
+                        16,
+                        32
+                    ],
+                    "default": 8,
+                    "description": "Bits per channel"
+                },
+                "content_type": {
+                    "type": "string",
+                    "enum": [
+                        "photograph",
+                        "document",
+                        "diagram",
+                        "medical",
+                        "satellite",
+                        "mixed"
+                    ],
+                    "description": "Type of image content"
+                },
+                "sensitive": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether image contains sensitive information"
+                },
+                "sensitivity_type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "face",
+                            "text",
+                            "location",
+                            "medical",
+                            "id_document",
+                            "other"
+                        ]
+                    },
+                    "description": "Types of sensitive content"
+                },
+                "fairness_constraints": {
+                    "type": "object",
+                    "properties": {
+                        "attribute_to_anonymize": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "face",
+                                    "skin_tone",
+                                    "age",
+                                    "gender_expression",
+                                    "none"
+                                ]
+                            },
+                            "description": "Attributes to anonymize or neutralize"
+                        },
+                        "balance_distribution": {
+                            "type": "object",
+                            "properties": {
+                                "attribute": {
+                                    "type": "string"
+                                },
+                                "target_distribution": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        },
+                        "remove_watermarks": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                },
+                "normalization": {
+                    "type": "object",
+                    "properties": {
+                        "method": {
+                            "type": "string",
+                            "enum": [
+                                "minmax",
+                                "standardize",
+                                "imagenet",
+                                "custom"
+                            ],
+                            "default": "imagenet"
+                        },
+                        "mean": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "description": "Mean values per channel"
+                        },
+                        "std": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "description": "Standard deviation per channel"
+                        }
+                    }
+                },
+                "quality_constraints": {
+                    "type": "object",
+                    "properties": {
+                        "min_resolution": {
+                            "type": "integer",
+                            "description": "Minimum resolution"
+                        },
+                        "max_blur": {
+                            "type": "number",
+                            "description": "Maximum blur score"
+                        },
+                        "min_contrast": {
+                            "type": "number",
+                            "description": "Minimum contrast"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "name",
+                "dimensions"
+            ]
+        },
+        "augmentation_config": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "transformations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "enum": [
+                                    "random_flip",
+                                    "random_rotation",
+                                    "random_crop",
+                                    "color_jitter",
+                                    "random_brightness",
+                                    "random_contrast",
+                                    "random_saturation",
+                                    "random_hue",
+                                    "gaussian_blur",
+                                    "random_noise",
+                                    "cutout",
+                                    "mixup",
+                                    "cutmix"
+                                ]
+                            },
+                            "probability": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            },
+                            "params": {
+                                "type": "object",
+                                "description": "Transformation-specific parameters"
+                            }
+                        },
+                        "required": [
+                            "name"
+                        ]
+                    }
+                },
+                "preserve_sensitive": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to preserve sensitive attributes during augmentation"
+                }
+            }
+        },
+        "privacy_config": {
+            "type": "object",
+            "properties": {
+                "face_detection": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "action": {
+                            "type": "string",
+                            "enum": [
+                                "blur",
+                                "pixelate",
+                                "mask",
+                                "remove",
+                                "none"
+                            ],
+                            "default": "blur"
+                        },
+                        "blur_strength": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 15
+                        }
+                    }
+                },
+                "text_detection": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "action": {
+                            "type": "string",
+                            "enum": [
+                                "blur",
+                                "pixelate",
+                                "mask",
+                                "remove",
+                                "none"
+                            ],
+                            "default": "blur"
+                        }
+                    }
+                },
+                "exif_removal": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Remove EXIF metadata"
+                },
+                "steganography_check": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Check for hidden data"
+                }
+            }
+        }
+    },
+    "type": "object",
+    "properties": {
+        "schema_name": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": {
+            "type": "string"
+        },
+        "fields": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/image_field"
+            }
+        },
+        "augmentation": {
+            "$ref": "#/definitions/augmentation_config"
+        },
+        "privacy": {
+            "$ref": "#/definitions/privacy_config"
+        },
+        "encoding": {
+            "type": "object",
+            "properties": {
+                "format": {
+                    "type": "string",
+                    "enum": [
+                        "png",
+                        "jpeg",
+                        "tiff",
+                        "webp",
+                        "npy"
+                    ],
+                    "default": "png"
+                },
+                "compression": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "quality": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 95
+                        }
+                    }
+                }
+            }
+        },
+        "storage": {
+            "type": "object",
+            "properties": {
+                "directory_structure": {
+                    "type": "string",
+                    "enum": [
+                        "flat",
+                        "hierarchical",
+                        "partitioned"
+                    ],
+                    "default": "hierarchical"
+                },
+                "naming_convention": {
+                    "type": "string",
+                    "description": "File naming pattern"
+                },
+                "max_file_size_mb": {
+                    "type": "integer",
+                    "default": 10
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "schema_name",
+        "version",
+        "fields"
+    ],
+    "examples": [
+        {
+            "schema_name": "profile_images",
+            "version": "1.0.0",
+            "description": "User profile image schema",
+            "fields": [
+                {
+                    "name": "profile_photo",
+                    "description": "User profile photograph",
+                    "dimensions": {
+                        "width": 256,
+                        "height": 256,
+                        "channels": 3
+                    },
+                    "color_mode": "rgb",
+                    "content_type": "photograph",
+                    "sensitive": true,
+                    "sensitivity_type": [
+                        "face"
+                    ],
+                    "fairness_constraints": {
+                        "attribute_to_anonymize": [],
+                        "balance_distribution": {
+                            "attribute": "skin_tone",
+                            "target_distribution": {
+                                "light": 0.25,
+                                "medium": 0.25,
+                                "dark": 0.25,
+                                "other": 0.25
+                            }
+                        }
+                    },
+                    "normalization": {
+                        "method": "imagenet",
+                        "mean": [
+                            0.485,
+                            0.456,
+                            0.406
+                        ],
+                        "std": [
+                            0.229,
+                            0.224,
+                            0.225
+                        ]
+                    }
+                }
+            ],
+            "augmentation": {
+                "enabled": true,
+                "transformations": [
+                    {
+                        "name": "random_flip",
+                        "probability": 0.5,
+                        "params": {
+                            "axis": "horizontal"
+                        }
+                    },
+                    {
+                        "name": "random_rotation",
+                        "probability": 0.3,
+                        "params": {
+                            "max_angle": 15
+                        }
+                    },
+                    {
+                        "name": "color_jitter",
+                        "probability": 0.3,
+                        "params": {
+                            "brightness": 0.1,
+                            "contrast": 0.1
+                        }
+                    }
+                ],
+                "preserve_sensitive": true
+            },
+            "privacy": {
+                "face_detection": {
+                    "enabled": false,
+                    "action": "none"
+                },
+                "exif_removal": true
+            }
+        },
+        {
+            "schema_name": "document_scans",
+            "version": "1.0.0",
+            "description": "Scanned document images",
+            "fields": [
+                {
+                    "name": "document_image",
+                    "description": "Scanned document",
+                    "dimensions": {
+                        "width": 512,
+                        "height": 512,
+                        "channels": 1
+                    },
+                    "color_mode": "grayscale",
+                    "content_type": "document",
+                    "sensitive": true,
+                    "sensitivity_type": [
+                        "text",
+                        "id_document"
+                    ],
+                    "fairness_constraints": {
+                        "attribute_to_anonymize": [
+                            "none"
+                        ]
+                    }
+                }
+            ],
+            "privacy": {
+                "face_detection": {
+                    "enabled": true,
+                    "action": "blur"
+                },
+                "text_detection": {
+                    "enabled": true,
+                    "action": "blur"
+                },
+                "exif_removal": true
+            }
+        }
+    ]
+}

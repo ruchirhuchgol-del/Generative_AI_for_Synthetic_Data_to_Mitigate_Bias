@@ -1,0 +1,77 @@
+# Dockerignore for Fair Synthetic Data Generator
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (large files)
+data/raw/
+data/processed/
+data/synthetic/
+checkpoints/
+logs/
+artifacts/
+
+# Keep necessary files
+!data/schemas/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.docker/
+
+# Documentation
+docs/
+site/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Misc
+.DS_Store
+*.log
+*.tmp
+.env
+.env.*
+*.md
+!README.md
+LICENSE
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Config (will be mounted)
+configs/experiments/

@@ -1,0 +1,321 @@
+# Data Configuration
+# ==================
+# Defines data schemas, sources, preprocessing, and augmentation settings
+
+# ==========================================
+# DATA SOURCES
+# ==========================================
+data_sources:
+  # Primary dataset
+  primary:
+    type: "synthetic" # synthetic, csv, database, api
+    format: "multimodal"
+    path: null # Will be set at runtime
+
+  # Reference datasets for evaluation
+  reference:
+    enabled: false
+    path: null
+
+# ==========================================
+# DATA SCHEMA
+# ==========================================
+schema:
+  # Tabular Features
+  tabular:
+    enabled: true
+
+    # Numerical Features
+    numerical:
+      - name: "age"
+        type: "continuous"
+        min: 18
+        max: 100
+        distribution: "uniform"
+
+      - name: "income"
+        type: "continuous"
+        min: 0
+        max: 500000
+        distribution: "log_normal"
+        log_mean: 10.5
+        log_std: 0.8
+
+      - name: "years_experience"
+        type: "continuous"
+        min: 0
+        max: 50
+        distribution: "exponential"
+
+      - name: "credit_score"
+        type: "continuous"
+        min: 300
+        max: 850
+        distribution: "normal"
+        mean: 680
+        std: 80
+
+    # Categorical Features
+    categorical:
+      - name: "gender"
+        type: "binary"
+        values: ["male", "female"]
+
+      - name: "race"
+        type: "nominal"
+        values: ["white", "black", "asian", "hispanic", "other"]
+
+      - name: "education_level"
+        type: "ordinal"
+        values: ["high_school", "associate", "bachelor", "master", "doctorate"]
+        order: [0, 1, 2, 3, 4]
+
+      - name: "employment_status"
+        type: "nominal"
+        values: ["employed", "unemployed", "self_employed", "retired"]
+
+      - name: "marital_status"
+        type: "nominal"
+        values: ["single", "married", "divorced", "widowed"]
+
+      - name: "region"
+        type: "nominal"
+        values: ["northeast", "south", "midwest", "west"]
+
+  # Text Features
+  text:
+    enabled: true
+
+    fields:
+      - name: "personal_statement"
+        max_length: 512
+        vocabulary_size: 30000
+
+      - name: "employment_history"
+        max_length: 1024
+        vocabulary_size: 50000
+
+      - name: "skills_description"
+        max_length: 256
+        vocabulary_size: 20000
+
+    # Text Processing
+    preprocessing:
+      lowercase: true
+      remove_punctuation: false
+      remove_stopwords: false
+      lemmatize: false
+      tokenize_method: "bpe" # word, char, bpe, sentencepiece
+
+  # Image Features
+  image:
+    enabled: true
+
+    fields:
+      - name: "profile_image"
+        resolution: [256, 256]
+        channels: 3
+        format: "rgb"
+
+      - name: "document_scan"
+        resolution: [512, 512]
+        channels: 1
+        format: "grayscale"
+
+# ==========================================
+# SENSITIVE ATTRIBUTES
+# ==========================================
+sensitive_attributes:
+  - name: "gender"
+    type: "binary"
+    privileged_value: "male"
+    unprivileged_value: "female"
+
+  - name: "race"
+    type: "categorical"
+    privileged_value: "white"
+    unprivileged_values: ["black", "asian", "hispanic", "other"]
+
+  - name: "age_group"
+    type: "derived"
+    source: "age"
+    bins:
+      - [18, 30, "young"]
+      - [31, 50, "middle"]
+      - [51, 100, "senior"]
+    privileged_group: "middle"
+
+# ==========================================
+# DATA GENERATION
+# ==========================================
+generation:
+  # Number of samples
+  n_samples: 100000
+
+  # Target distribution
+  target_distribution:
+    strategy: "balanced" # balanced, original, custom
+
+    custom_weights:
+      gender:
+        male: 0.5
+        female: 0.5
+      race:
+        white: 0.6
+        black: 0.13
+        asian: 0.06
+        hispanic: 0.18
+        other: 0.03
+
+  # Correlation preservation
+  correlations:
+    preserve: true
+    method: "copula" # copula, gaussian, vine
+    threshold: 0.1 # Minimum correlation to preserve
+
+  # Conditional generation
+  conditional:
+    enabled: false
+    conditions: []
+
+# ==========================================
+# PREPROCESSING
+# ==========================================
+preprocessing:
+  # Missing Value Handling
+  missing_values:
+    numerical:
+      strategy: "median" # mean, median, mode, knn, iterative
+    categorical:
+      strategy: "most_frequent" # most_frequent, constant, knn
+    text:
+      strategy: "empty_string"
+    image:
+      strategy: "zero_pad"
+
+  # Outlier Handling
+  outliers:
+    detection: "iqr" # iqr, zscore, isolation_forest
+    treatment: "clip" # clip, remove, winsorize
+    threshold: 3.0
+
+  # Normalization
+  normalization:
+    numerical:
+      method: "standard" # standard, min_max, robust, log
+      per_group: false
+
+  # Encoding
+  encoding:
+    categorical:
+      method: "one_hot" # one_hot, label, target, embedding
+      handle_unknown: "ignore"
+
+  # Feature Engineering
+  feature_engineering:
+    create_interactions: false
+    polynomial_features: false
+    bin_continuous: false
+
+# ==========================================
+# DATA AUGMENTATION
+# ==========================================
+augmentation:
+  # Tabular Augmentation
+  tabular:
+    enabled: false
+    methods:
+      - type: "noise_injection"
+        std: 0.01
+      - type: "mixup"
+        alpha: 0.2
+
+  # Text Augmentation
+  text:
+    enabled: false
+    methods:
+      - type: "synonym_replacement"
+        probability: 0.1
+      - type: "random_insertion"
+        probability: 0.05
+      - type: "random_deletion"
+        probability: 0.05
+
+  # Image Augmentation
+  image:
+    enabled: true
+    methods:
+      - type: "random_flip"
+        probability: 0.5
+      - type: "random_rotation"
+        max_angle: 15
+      - type: "color_jitter"
+        brightness: 0.1
+        contrast: 0.1
+        saturation: 0.1
+      - type: "random_crop"
+        size: [224, 224]
+
+# ==========================================
+# DATA LOADING
+# ==========================================
+dataloader:
+  batch_size: 128
+  shuffle: true
+  num_workers: 4
+  pin_memory: true
+  drop_last: false
+  prefetch_factor: 2
+
+  # Distributed settings
+  distributed:
+    sampler: "distributed"
+    shuffle: false # Handled by sampler
+
+# ==========================================
+# DATA SPLITTING
+# ==========================================
+splitting:
+  strategy: "stratified" # random, stratified, temporal
+  ratios:
+    train: 0.7
+    validation: 0.15
+    test: 0.15
+
+  # Stratification
+  stratify_by:
+    - "gender"
+    - "race"
+
+  # Cross-validation
+  cross_validation:
+    enabled: false
+    n_folds: 5
+    stratified: true
+
+# ==========================================
+# PRIVACY SETTINGS
+# ==========================================
+privacy:
+  # Differential Privacy
+  differential_privacy:
+    enabled: false
+    epsilon: 1.0
+    delta: 1e-5
+    mechanism: "gaussian" # gaussian, laplace
+
+  # Data Anonymization
+  anonymization:
+    enabled: true
+    methods:
+      - type: "generalization"
+        attributes: ["age"]
+        levels: 5
+      - type: "suppression"
+        threshold: 5 # Suppress rare values
+
+  # Synthetic Data Validation
+  synthetic_validation:
+    check_uniqueness: true
+    check_linkability: true
+    attribute_inference_threshold: 0.1

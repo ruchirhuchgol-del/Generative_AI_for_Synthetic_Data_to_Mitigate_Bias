@@ -1,0 +1,131 @@
+# Tabular-Only Experiment Configuration
+# =====================================
+# Configuration for tabular-only synthetic data generation
+
+experiment:
+  name: "tabular_only"
+  description: "Experiment focused solely on tabular data generation"
+  tags: ["tabular", "single_modality", "focused"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# Model configuration for tabular only
+model:
+  name: "FairTabularGenerator"
+
+  # Disable multimodal components
+  encoders:
+    text:
+      enabled: false
+    image:
+      enabled: false
+    tabular:
+      type: "tabtransformer"
+      hidden_dims: [256, 512, 512, 256]
+      num_heads: 8
+      num_layers: 6
+
+  decoders:
+    text:
+      enabled: false
+    image:
+      enabled: false
+    tabular:
+      hidden_dims: [256, 512, 512, 256]
+
+  fusion:
+    enabled: false
+
+  discriminators:
+    modality:
+      enabled: false
+
+# Training adjustments
+training:
+  n_epochs: 800
+  batch_size: 256
+
+  loss_weights:
+    reconstruction: 1.0
+    tabular_reconstruction: 1.0
+    text_reconstruction: 0.0
+    image_reconstruction: 0.0
+    kl_divergence: 0.001
+    group_fairness: 1.0
+    individual_fairness: 0.5
+    counterfactual_fairness: 0.5
+    adversarial_debiasing: 1.0
+    cross_modal_consistency: 0.0
+
+# Data schema for tabular only
+schema:
+  tabular:
+    enabled: true
+    numerical:
+      - name: "age"
+        type: "continuous"
+        min: 18
+        max: 100
+      - name: "income"
+        type: "continuous"
+        min: 0
+        max: 500000
+      - name: "years_experience"
+        type: "continuous"
+        min: 0
+        max: 50
+      - name: "credit_score"
+        type: "continuous"
+        min: 300
+        max: 850
+    categorical:
+      - name: "gender"
+        type: "binary"
+        values: ["male", "female"]
+      - name: "race"
+        type: "nominal"
+        values: ["white", "black", "asian", "hispanic", "other"]
+      - name: "education_level"
+        type: "ordinal"
+        values: ["high_school", "associate", "bachelor", "master", "doctorate"]
+
+  text:
+    enabled: false
+
+  image:
+    enabled: false
+
+# Evaluation for tabular only
+evaluation:
+  multimodal:
+    enabled: false
+
+  fidelity:
+    statistical_similarity:
+      marginal:
+        - name: "jensen_shannon_divergence"
+        - name: "wasserstein_distance"
+        - name: "kolmogorov_smirnov"
+
+    ml_utility:
+      enabled: true
+      train_on_synthetic:
+        model_types:
+          - "logistic_regression"
+          - "random_forest"
+          - "xgboost"
+          - "lightgbm"
+          - "catboost"
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data-tabular"
+    name: "${experiment.name}"

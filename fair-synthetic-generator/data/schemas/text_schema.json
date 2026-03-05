@@ -1,0 +1,448 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "text_schema.json",
+    "title": "Text Data Schema",
+    "description": "Schema definition for text data in the Fair Synthetic Data Generator",
+    "version": "1.0.0",
+    "definitions": {
+        "vocabulary_config": {
+            "type": "object",
+            "properties": {
+                "size": {
+                    "type": "integer",
+                    "minimum": 1000,
+                    "description": "Vocabulary size"
+                },
+                "min_frequency": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 2,
+                    "description": "Minimum frequency for token inclusion"
+                },
+                "special_tokens": {
+                    "type": "object",
+                    "properties": {
+                        "pad": {
+                            "type": "string",
+                            "default": "<PAD>"
+                        },
+                        "unk": {
+                            "type": "string",
+                            "default": "<UNK>"
+                        },
+                        "bos": {
+                            "type": "string",
+                            "default": "<BOS>"
+                        },
+                        "eos": {
+                            "type": "string",
+                            "default": "<EOS>"
+                        },
+                        "mask": {
+                            "type": "string",
+                            "default": "<MASK>"
+                        }
+                    }
+                },
+                "tokenization": {
+                    "type": "string",
+                    "enum": [
+                        "word",
+                        "char",
+                        "bpe",
+                        "wordpiece",
+                        "sentencepiece"
+                    ],
+                    "default": "bpe"
+                }
+            },
+            "required": [
+                "size"
+            ]
+        },
+        "text_field": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Field name"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Field description"
+                },
+                "max_length": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Maximum sequence length"
+                },
+                "min_length": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "description": "Minimum sequence length"
+                },
+                "avg_length": {
+                    "type": "number",
+                    "description": "Average sequence length"
+                },
+                "vocabulary_size": {
+                    "type": "integer",
+                    "description": "Expected vocabulary size"
+                },
+                "language": {
+                    "type": "string",
+                    "default": "en",
+                    "description": "ISO 639-1 language code"
+                },
+                "style": {
+                    "type": "string",
+                    "enum": [
+                        "formal",
+                        "informal",
+                        "technical",
+                        "narrative",
+                        "mixed"
+                    ],
+                    "description": "Writing style"
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "Domain or topic area"
+                },
+                "sensitive": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether text may contain sensitive information"
+                },
+                "anonymization": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "patterns": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "name",
+                                    "email",
+                                    "phone",
+                                    "address",
+                                    "ssn",
+                                    "date",
+                                    "custom"
+                                ]
+                            },
+                            "description": "Patterns to anonymize"
+                        },
+                        "custom_patterns": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "pattern": {
+                                        "type": "string"
+                                    },
+                                    "replacement": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "fairness_constraints": {
+                    "type": "object",
+                    "properties": {
+                        "remove_bias_markers": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Remove explicit bias markers (gender, race words)"
+                        },
+                        "balanced_representation": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Ensure balanced representation across groups"
+                        },
+                        "neutralize_terms": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Terms to neutralize"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "name",
+                "max_length"
+            ]
+        },
+        "embedding_config": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "random",
+                        "pretrained",
+                        "contextual"
+                    ],
+                    "description": "Embedding type"
+                },
+                "dimension": {
+                    "type": "integer",
+                    "minimum": 50,
+                    "default": 300
+                },
+                "pretrained_model": {
+                    "type": "string",
+                    "description": "Pretrained model name (e.g., 'glove.6B.300d', 'bert-base-uncased')"
+                },
+                "finetune": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        }
+    },
+    "type": "object",
+    "properties": {
+        "schema_name": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": {
+            "type": "string"
+        },
+        "language": {
+            "type": "string",
+            "default": "en"
+        },
+        "fields": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/text_field"
+            }
+        },
+        "vocabulary": {
+            "$ref": "#/definitions/vocabulary_config"
+        },
+        "embedding": {
+            "$ref": "#/definitions/embedding_config"
+        },
+        "preprocessing": {
+            "type": "object",
+            "properties": {
+                "lowercase": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "remove_punctuation": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "remove_stopwords": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "stemming": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "lemmatization": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "handle_numbers": {
+                    "type": "string",
+                    "enum": [
+                        "keep",
+                        "replace",
+                        "remove"
+                    ],
+                    "default": "keep"
+                },
+                "handle_urls": {
+                    "type": "string",
+                    "enum": [
+                        "keep",
+                        "replace",
+                        "remove"
+                    ],
+                    "default": "replace"
+                },
+                "handle_mentions": {
+                    "type": "string",
+                    "enum": [
+                        "keep",
+                        "replace",
+                        "remove"
+                    ],
+                    "default": "replace"
+                },
+                "normalize_whitespace": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
+        "augmentation": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "techniques": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "enum": [
+                                    "synonym_replacement",
+                                    "random_insertion",
+                                    "random_deletion",
+                                    "random_swap",
+                                    "back_translation"
+                                ]
+                            },
+                            "probability": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "protected_content": {
+            "type": "object",
+            "properties": {
+                "detect_bias_terms": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "bias_term_categories": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "gender",
+                            "race",
+                            "religion",
+                            "nationality",
+                            "age",
+                            "disability",
+                            "sexual_orientation"
+                        ]
+                    },
+                    "default": [
+                        "gender",
+                        "race"
+                    ]
+                },
+                "protected_word_lists": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "required": [
+        "schema_name",
+        "version",
+        "fields"
+    ],
+    "examples": [
+        {
+            "schema_name": "resume_text",
+            "version": "1.0.0",
+            "description": "Resume and personal statement text schema",
+            "language": "en",
+            "fields": [
+                {
+                    "name": "personal_statement",
+                    "description": "Candidate's personal statement",
+                    "max_length": 512,
+                    "min_length": 50,
+                    "style": "formal",
+                    "domain": "employment",
+                    "sensitive": true,
+                    "anonymization": {
+                        "enabled": true,
+                        "patterns": [
+                            "name",
+                            "email",
+                            "phone",
+                            "address"
+                        ]
+                    },
+                    "fairness_constraints": {
+                        "remove_bias_markers": true,
+                        "neutralize_terms": [
+                            "aggressive",
+                            "nurturing",
+                            "dominant"
+                        ]
+                    }
+                }
+            ],
+            "vocabulary": {
+                "size": 50000,
+                "tokenization": "bpe",
+                "min_frequency": 2
+            },
+            "preprocessing": {
+                "lowercase": true,
+                "remove_punctuation": false,
+                "handle_numbers": "replace"
+            },
+            "protected_content": {
+                "detect_bias_terms": true,
+                "bias_term_categories": [
+                    "gender",
+                    "race",
+                    "age"
+                ]
+            }
+        }
+    ]
+}

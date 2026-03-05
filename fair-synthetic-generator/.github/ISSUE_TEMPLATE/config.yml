@@ -1,0 +1,21 @@
+# Issue Template Configuration
+# ============================
+# Configures the issue creation experience
+
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://fair-synthetic-generator.readthedocs.io/
+    about: Check the documentation for usage guides and API reference
+
+  - name: Discussions
+    url: https://github.com/org/fair-synthetic-generator/discussions
+    about: Ask questions and discuss ideas with the community
+
+  - name: Security Vulnerability
+    url: https://github.com/org/fair-synthetic-generator/security/policy
+    about: Please report security vulnerabilities through our security policy
+
+  - name: FAQ
+    url: https://fair-synthetic-generator.readthedocs.io/en/latest/faq.html
+    about: Frequently asked questions and common solutions

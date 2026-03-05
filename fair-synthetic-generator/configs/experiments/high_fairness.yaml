@@ -1,0 +1,128 @@
+# High Fairness Priority Experiment
+# =================================
+# Configuration prioritizing fairness over fidelity
+
+experiment:
+  name: "high_fairness"
+  description: "Experiment with strong emphasis on fairness constraints"
+  tags: ["fairness_priority", "strict_constraints", "debiased"]
+  version: "1.0.0"
+
+defaults:
+  - /model_config
+  - /training_config
+  - /fairness_config
+  - /data_config
+  - /evaluation_config
+
+# Model modifications for fairness
+model:
+  name: "FairMultimodalGenerator-HighFairness"
+  latent_dim: 512 # Larger latent space for better disentanglement
+
+  discriminators:
+    fairness:
+      enabled: true
+      hidden_dims: [512, 256, 128] # Larger adversary network
+      gradient_reversal:
+        lambda_max: 2.0 # Stronger gradient reversal
+
+# Training modifications
+training:
+  n_epochs: 1000 # More epochs for convergence
+  batch_size: 128
+
+  optimizer:
+    lr: 1.0e-4
+
+    lr_mult:
+      fairness_adversary: 0.5 # Higher LR for adversary
+
+  loss_weights:
+    reconstruction: 0.5
+    kl_divergence: 0.0005
+    group_fairness: 2.0 # Significantly higher
+    individual_fairness: 1.5
+    counterfactual_fairness: 1.5
+    adversarial_debiasing: 2.0
+
+  adversarial_training:
+    n_critic: 10 # More adversary steps
+    gradient_reversal:
+      lambda_end: 2.0
+
+  curriculum:
+    enabled: true
+    strategy: "fairness_curriculum"
+
+    fairness_curriculum:
+      stages:
+        - epoch: 0
+          fairness_weight: 0.1
+        - epoch: 100
+          fairness_weight: 0.5
+        - epoch: 300
+          fairness_weight: 1.0
+        - epoch: 500
+          fairness_weight: 1.5
+        - epoch: 700
+          fairness_weight: 2.0
+
+# Stricter fairness thresholds
+fairness_paradigms:
+  group_fairness:
+    enabled: true
+    weight: 2.0
+
+    metrics:
+      demographic_parity:
+        threshold: 0.02 # Stricter
+
+      equalized_odds:
+        threshold: 0.02
+
+      disparate_impact:
+        min_ratio: 0.9 # Closer to 1.0
+
+  individual_fairness:
+    enabled: true
+    weight: 1.5
+
+    lipschitz:
+      lambda_lipschitz: 0.5 # Stronger regularization
+
+  counterfactual_fairness:
+    enabled: true
+    weight: 1.5
+
+    evaluation:
+      threshold: 0.02 # Stricter
+
+# Stronger adversarial debiasing
+adversarial_debiasing:
+  enabled: true
+  weight: 2.0
+
+  adversary:
+    hidden_dims: [512, 256, 128]
+
+  training:
+    n_adversary_steps: 3
+
+  gradient_reversal:
+    lambda_end: 2.0
+
+# Stricter evaluation thresholds
+thresholds:
+  demographic_parity_difference: 0.02
+  equalized_odds_difference: 0.02
+  counterfactual_invariance: 0.98
+  consistency_score: 0.95
+
+# Logging
+logging:
+  wandb:
+    enabled: true
+    project: "fair-synthetic-data"
+    name: "${experiment.name}"
+    tags: "${experiment.tags}"

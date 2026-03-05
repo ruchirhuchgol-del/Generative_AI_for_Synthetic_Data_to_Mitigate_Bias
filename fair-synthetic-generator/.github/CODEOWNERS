@@ -1,0 +1,40 @@
+# CODEOWNERS - Code Review Assignments
+# =====================================
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything
+* @maintainers
+
+# Core modules - require senior review
+/src/core/ @senior-maintainers
+/src/models/ @ml-maintainers
+/src/training/ @ml-maintainers
+/src/fairness/ @fairness-experts
+
+# Data handling - data team review
+/src/data/ @data-team
+/data/ @data-team
+
+# API and infrastructure
+/src/api/ @infra-team
+/docker-compose.yml @infra-team
+/Dockerfile @infra-team
+
+# Configuration files
+/configs/ @maintainers
+/.github/ @devops-team
+
+# Documentation
+/docs/ @docs-team
+/README.md @maintainers
+/CONTRIBUTING.md @maintainers
+
+# Tests - any maintainer can review
+/tests/ @maintainers
+
+# CI/CD workflows
+/.github/workflows/ @devops-team
+
+# Dependencies
+/requirements*.txt @maintainers
+/pyproject.toml @maintainers
