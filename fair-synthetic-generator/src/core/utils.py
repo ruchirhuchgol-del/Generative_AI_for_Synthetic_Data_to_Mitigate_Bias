@@ -20,7 +20,7 @@ import os
 import random
 import sys
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, Generic
 
 import numpy as np
 import torch

@@ -48,7 +48,7 @@ Example:
         sensitive: torch.Tensor
     ) -> Dict[str, float]:
         """
-        Train generator for one step with alternating updates.
+Train generator for one step with alternating updates.
         
         Args:
             batch: Input batch
