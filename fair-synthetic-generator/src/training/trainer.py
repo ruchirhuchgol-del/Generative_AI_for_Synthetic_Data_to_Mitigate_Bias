@@ -1,5 +1,22 @@
 import torch
 from tqdm import tqdm
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+
+@dataclass
+class TrainingConfig:
+    """Configuration for model training."""
+    n_epochs: int = 100
+    batch_size: int = 64
+    learning_rate: float = 1e-3
+    device: str = "cpu"
+    checkpoint_dir: str = "checkpoints"
+    save_every: int = 10
+    validation_split: float = 0.1
+    use_early_stopping: bool = True
+    early_stopping_patience: int = 5
+    fairness_weight: float = 0.1
+    adversarial_weight: float = 0.1
 
 class Trainer:
     """Standard trainer for generative models."""

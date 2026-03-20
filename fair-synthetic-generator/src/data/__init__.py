@@ -1,18 +1,21 @@
 """
-Data Preprocessing Module
-=========================
+Data Module
+===========
 
-This module provides preprocessing utilities for different data modalities:
-- TabularPreprocessor: Normalization, encoding, missing value handling
-- TextPreprocessor: Tokenization, cleaning, normalization
-- ImagePreprocessor: Resizing, normalization, standardization
-- MultimodalPreprocessor: Combined preprocessing for multiple modalities
+Provides preprocessing, augmentation, and schema utilities for all data modalities.
+
+Subpackages:
+- preprocessing: TabularPreprocessor, TextPreprocessor, ImagePreprocessor, MultimodalPreprocessor
+- augmentation: TabularAugmenter, TextAugmenter, ImageAugmenter
+- schemas: DataSchema, SensitiveAttribute
 """
 
-from .tabular_preprocessor import TabularPreprocessor
-from .text_preprocessor import TextPreprocessor
-from .image_preprocessor import ImagePreprocessor
-from .multimodal_preprocessor import MultimodalPreprocessor
+from src.data.preprocessing import (
+    TabularPreprocessor,
+    TextPreprocessor,
+    ImagePreprocessor,
+    MultimodalPreprocessor,
+)
 
 __all__ = [
     "TabularPreprocessor",

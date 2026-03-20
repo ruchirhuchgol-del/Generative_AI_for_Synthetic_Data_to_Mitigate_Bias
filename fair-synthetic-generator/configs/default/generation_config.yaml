@@ -1,0 +1,27 @@
+# Default Generation Configuration
+
+# Input settings
+model_path: "checkpoints/default/model.pt"
+modality: "tabular"  # tabular, text, image, multimodal
+
+# Generation parameters
+n_samples: 1000
+batch_size: 256
+seed: 42
+use_gpu: true
+precision: "float32"
+
+# Post-processing
+postprocess: true
+quality_filter: true
+min_quality_score: 0.7
+
+# Fairness settings
+ensure_fairness: true
+fairness_paradigm: "group"
+sensitive_attributes: ["gender", "race"]
+
+# Output settings
+output_dir: "data/synthetic/"
+output_format: "csv"  # csv, json, parquet
+save_metadata: true

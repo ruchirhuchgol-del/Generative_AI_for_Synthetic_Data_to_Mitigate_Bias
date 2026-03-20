@@ -22,7 +22,7 @@ This module provides complete fair generative model architectures:
 
 ### DebiasedVAE Family
 - DebiasedVAE: VAE with adversarial debiasing
-- BetaDebiasedVAE: β-VAE with fairness
+- BetaDebiasedVAE: beta-VAE with fairness
 - ConditionalDebiasedVAE: Conditional fair VAE
 - HierarchicalDebiasedVAE: Multi-level VAE
 - MultimodalDebiasedVAE: Multimodal fair VAE
@@ -36,29 +36,29 @@ This module provides complete fair generative model architectures:
 ## Architecture Overview
 
 ```
-                    ┌─────────────────────────────────────┐
-                    │     Fair Synthetic Data Generation   │
-                    └─────────────────────────────────────┘
-                                      │
-           ┌──────────────────────────┼──────────────────────────┐
-           │                          │                          │
-           ▼                          ▼                          ▼
-    ┌──────────────┐          ┌──────────────┐          ┌──────────────┐
-    │   FairGAN    │          │FairDiffusion │          │ DebiasedVAE  │
-    │  - Adversary │          │  - Denoising │          │  - VAE + Adv │
-    │  - WGAN-GP   │          │  - DDIM      │          │  - β-VAE     │
-    │  - Multimodal│          │  - Latent    │          │  - Hierarch. │
-    └──────────────┘          └──────────────┘          └──────────────┘
-           │                          │                          │
-           └──────────────────────────┼──────────────────────────┘
-                                      │
-                                      ▼
-                    ┌─────────────────────────────────────┐
-                    │     Counterfactual Generation       │
-                    │  - Causal Models                    │
-                    │  - Latent Editing                   │
-                    │  - Cycle Consistency                │
-                    └─────────────────────────────────────┘
+                    +-------------------------------------+
+                    |     Fair Synthetic Data Generation   |
+                    +-------------------------------------+
+                                      |
+           +--------------------------+--------------------------+
+           |                          |                          |
+           v                          v                          v
+    +--------------+          +--------------+          +--------------+
+    |   FairGAN    |          |FairDiffusion |          | DebiasedVAE  |
+    |  - Adversary |          |  - Denoising |          |  - VAE + Adv |
+    |  - WGAN-GP   |          |  - DDIM      |          |  - beta-VAE  |
+    |  - Multimodal|          |  - Latent    |          |  - Hierarch. |
+    +--------------+          +--------------+          +--------------+
+           |                          |                          |
+           +--------------------------+--------------------------+
+                                      |
+                                      v
+                    +-------------------------------------+
+                    |     Counterfactual Generation       |
+                    |  - Causal Models                    |
+                    |  - Latent Editing                   |
+                    |  - Cycle Consistency                |
+                    +-------------------------------------+
 ```
 
 ## Fairness Paradigms
@@ -69,7 +69,7 @@ This module provides complete fair generative model architectures:
 - Disparate Impact
 
 ### Individual Fairness
-- Similar individuals → similar outcomes
+- Similar individuals -> similar outcomes
 - Lipschitz continuity
 
 ### Counterfactual Fairness
@@ -168,6 +168,8 @@ samples = model.generate(100)
 # Returns: {"tabular": ..., "text": ..., "image": ...}
 ```
 """
+
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # FairGAN architectures
 from src.models.architectures.fairgan import (

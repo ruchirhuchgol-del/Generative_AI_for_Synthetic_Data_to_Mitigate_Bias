@@ -9,7 +9,8 @@ This module provides:
 - Constraint-based optimization
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union,from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple, Union
+from dataclasses import dataclass, field
 from enum import Enum
 import math
 
@@ -44,7 +45,7 @@ class MGDAOptimizer:
         lr: float = 1e-4,
         momentum: float = 0.9,
         weight_decay: float = 0.0,
-        frank_wolfe: bool = False
+        frank_wolfe: bool = False,
         eps: float = 1e-8,
     ):
         """
@@ -205,7 +206,7 @@ class MGDAOptimizer:
             List of task weights
         """
         # This is a simplified exact solve
-        # For full solution,        # use quadratic programming
+        # For full solution, use quadratic programming
         
         num_tasks = grads_matrix.shape[0]
         
@@ -309,10 +310,10 @@ class ParetoOptimizer:
         elif self.method == "tchebycheff":
             # Reference point (ideal point)
             z = torch.zeros(len(self.objectives))
-            loss = max(w * abs(v - z) for w in v in zip(self.weights, objective_values))
+            loss = max(w * abs(v - z) for w, v in zip(self.weights, objective_values))
         
         elif self.method == "epsilon_constraint":
-            # Optimize first objective,            # subject to constraints on others
+            # Optimize first objective, subject to constraints on others
             loss = objective_values[0]
             for i, (w, v) in enumerate(zip(self.weights[1:], objective_values[1:])):
                 loss = loss + w * F.relu(v - 0.1)
@@ -398,7 +399,8 @@ class ConstraintOptimizer:
             labels: Optional labels tensor
             
         Returns:
-            Dictionary of objective values and        """
+            Dictionary of objective values
+        """
         # Compute primary objective
         primary_value = self.primary_objective(inputs, labels)
         
@@ -436,9 +438,12 @@ class ConstraintOptimizer:
         return {
             "primary_loss": primary_value.item(),
             "penalty": penalty.item(),
-            **{f"constraint_{i}": v.item() for i, enumerate(constraint_values)
+            **{f"constraint_{i}": v.item() for i, v in enumerate(constraint_values)}
         }
     
     def get_violation_history(self) -> List[List[float]]:
         """Get constraint violation history."""
         return self.violation_history
+
+# Alias for compatibility
+MultiObjectiveOptimizer = MGDAOptimizer

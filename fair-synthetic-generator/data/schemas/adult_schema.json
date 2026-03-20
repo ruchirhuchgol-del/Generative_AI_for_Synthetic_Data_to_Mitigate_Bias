@@ -1,0 +1,222 @@
+{
+  "name": "adult_census",
+  "description": "Adult Census Income dataset schema",
+  "tabular": {
+    "features": [
+      {
+        "name": "age",
+        "type": "numerical",
+        "range": [
+          17,
+          90
+        ],
+        "description": "Age of individual"
+      },
+      {
+        "name": "workclass",
+        "type": "categorical",
+        "categories": [
+          "Private",
+          "Self-emp-not-inc",
+          "Self-emp-inc",
+          "Federal-gov",
+          "Local-gov",
+          "State-gov",
+          "Without-pay",
+          "Never-worked"
+        ]
+      },
+      {
+        "name": "fnlwgt",
+        "type": "numerical",
+        "range": [
+          12285,
+          1484705
+        ],
+        "description": "Final weight"
+      },
+      {
+        "name": "education",
+        "type": "categorical",
+        "categories": [
+          "Bachelors",
+          "Some-college",
+          "11th",
+          "HS-grad",
+          "Prof-school",
+          "Assoc-acdm",
+          "Assoc-voc",
+          "9th",
+          "7th-8th",
+          "12th",
+          "Masters",
+          "1st-4th",
+          "10th",
+          "Doctorate",
+          "5th-6th",
+          "Preschool"
+        ]
+      },
+      {
+        "name": "education_num",
+        "type": "numerical",
+        "range": [
+          1,
+          16
+        ],
+        "description": "Education years"
+      },
+      {
+        "name": "marital_status",
+        "type": "categorical",
+        "categories": [
+          "Married-civ-spouse",
+          "Divorced",
+          "Never-married",
+          "Separated",
+          "Widowed",
+          "Married-spouse-absent",
+          "Married-AF-spouse"
+        ]
+      },
+      {
+        "name": "occupation",
+        "type": "categorical",
+        "categories": [
+          "Tech-support",
+          "Craft-repair",
+          "Other-service",
+          "Sales",
+          "Exec-managerial",
+          "Prof-specialty",
+          "Handlers-cleaners",
+          "Machine-op-inspct",
+          "Adm-clerical",
+          "Farming-fishing",
+          "Transport-moving",
+          "Priv-house-serv",
+          "Protective-serv",
+          "Armed-Forces"
+        ]
+      },
+      {
+        "name": "relationship",
+        "type": "categorical",
+        "categories": [
+          "Wife",
+          "Own-child",
+          "Husband",
+          "Not-in-family",
+          "Other-relative",
+          "Unmarried"
+        ]
+      },
+      {
+        "name": "race",
+        "type": "categorical",
+        "categories": [
+          "White",
+          "Asian-Pac-Islander",
+          "Amer-Indian-Eskimo",
+          "Other",
+          "Black"
+        ],
+        "sensitive": true
+      },
+      {
+        "name": "sex",
+        "type": "categorical",
+        "categories": [
+          "Male",
+          "Female"
+        ],
+        "sensitive": true
+      },
+      {
+        "name": "capital_gain",
+        "type": "numerical",
+        "range": [
+          0,
+          99999
+        ]
+      },
+      {
+        "name": "capital_loss",
+        "type": "numerical",
+        "range": [
+          0,
+          4356
+        ]
+      },
+      {
+        "name": "hours_per_week",
+        "type": "numerical",
+        "range": [
+          1,
+          99
+        ]
+      },
+      {
+        "name": "native_country",
+        "type": "categorical",
+        "categories": [
+          "United-States",
+          "Cambodia",
+          "England",
+          "Puerto-Rico",
+          "Canada",
+          "Germany",
+          "Outlying-US(Guam-USVI-etc)",
+          "India",
+          "Japan",
+          "Greece",
+          "South",
+          "China",
+          "Cuba",
+          "Iran",
+          "Honduras",
+          "Philippines",
+          "Italy",
+          "Poland",
+          "Jamaica",
+          "Vietnam",
+          "Mexico",
+          "Portugal",
+          "Ireland",
+          "France",
+          "Dominican-Republic",
+          "Laos",
+          "Ecuador",
+          "Taiwan",
+          "Haiti",
+          "Columbia",
+          "Hungary",
+          "Guatemala",
+          "Nicaragua",
+          "Scotland",
+          "Thailand",
+          "Yugoslavia",
+          "El-Salvador",
+          "Trinadad&Tobago",
+          "Peru",
+          "Hong",
+          "Holand-Netherlands"
+        ]
+      }
+    ],
+    "target": {
+      "name": "income",
+      "type": "binary",
+      "categories": [
+        "<=50K",
+        ">50K"
+      ]
+    },
+    "sensitive_attributes": [
+      "race",
+      "sex"
+    ]
+  },
+  "generated_at": "2026-03-20T22:22:47.783481",
+  "version": "1.0.0"
+}

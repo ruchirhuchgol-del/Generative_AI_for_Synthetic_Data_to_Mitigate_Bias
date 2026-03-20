@@ -175,11 +175,9 @@ from src.fairness.constraints.counterfactual_fairness import (
     CounterfactualFairnessConstraint,
 )
 
-# Losses
 from src.fairness.losses.fairness_loss import (
     FairnessLoss,
     MultiObjectiveFairnessLoss,
-    AdversarialDebiasingLoss as AdversarialLoss,
 )
 from src.fairness.losses.adversarial_loss import (
     AdversarialDebiasingLoss,
@@ -271,7 +269,6 @@ __all__ = [
     # Losses
     "FairnessLoss",
     "MultiObjectiveFairnessLoss",
-    "AdversarialLoss",
     "AdversarialDebiasingLoss",
     "MultiAdversaryLoss",
     "ContrastiveFairnessLoss",

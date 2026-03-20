@@ -1,0 +1,63 @@
+site_name: Fair Synthetic Data Generator
+site_url: https://fair-synth.github.io/fair-synthetic-generator/
+repo_url: https://github.com/fair-synth/fair-synthetic-generator
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Architecture:
+    - Overview: architecture.md
+    - Models: models.md
+    - Fairness: fairness.md
+  - API Reference:
+    - Overview: api/index.md
+    - Core: api/core.md
+    - Models: api/models.md
+    - Fairness: api/fairness.md
+  - Examples:
+    - Tabular Data: examples/tabular.md
+    - Image Data: examples/image.md
+    - Text Data: examples/text.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md

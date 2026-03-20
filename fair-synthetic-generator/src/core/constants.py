@@ -109,3 +109,9 @@ NEG_INFINITY = float("-inf")
 # Training
 DEFAULT_BATCH_SIZE = 64
 DEFAULT_LEARNING_RATE = 1e-3
+
+# Registries (populated by respective modules)
+GENERATOR_REGISTRY = {}
+ENCODER_REGISTRY = {}
+DECODER_REGISTRY = {}
+DISCRIMINATOR_REGISTRY = {}

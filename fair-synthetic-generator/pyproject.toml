@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fair-synthetic-generator"
+version = "1.0.0"
+description = "A framework for generating fair, high-fidelity synthetic data."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Ruchir Huchgol", email = "ruchir@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.1.0",
+    "tensorflow>=2.15.0",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "fastapi>=0.104.0",
+    "pydantic>=2.5.0",
+    "fairlearn>=0.9.0",
+    "aif360>=0.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

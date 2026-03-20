@@ -113,6 +113,8 @@ temp/
 # Documentation
 site/
 docs/_build/
+To-Do.md
+README.md
 
 # Artifacts (generated outputs)
 artifacts/models/*

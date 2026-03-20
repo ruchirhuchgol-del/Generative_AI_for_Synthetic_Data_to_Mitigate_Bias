@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./configs:/app/configs
+      - ./checkpoints:/app/checkpoints
+    environment:
+      - APP_VERSION=1.0.0
+      - CORS_ORIGINS=http://localhost:3000
+      - DEBUG=true
+    restart: always
+
+  # Optional: Redis for job queue persistence in future
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"

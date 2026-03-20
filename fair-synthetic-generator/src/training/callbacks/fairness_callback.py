@@ -73,8 +73,7 @@ class FairnessCallback:
         self.sensitive_attrs = sensitive_attrs
         self.constraints = constraints
         self.thresholds = thresholds or {
-            name: constraint for constraint in constraints
-            self.thresholds[name] = 0.05
+            constraint: 0.05 for constraint in constraints
         }
         self.evaluation_frequency = evaluation_frequency
         self.log_frequency = log_frequency
@@ -103,8 +102,7 @@ class FairnessCallback:
             return EqualizedOdds(threshold=self.thresholds[constraint_name])
         else:
             # Default to demographic parity
-            return DemographicParity(threshold=self.thresholds.get(constraint_name, 0.05)
-        )
+            return DemographicParity(threshold=self.thresholds.get(constraint_name, 0.05))
     
     def on_train_begin(self, trainer: Trainer) -> None:
         """Called at training start."""
@@ -275,7 +273,7 @@ class FairnessCallback:
             values = [h["metrics"][name] for h in self.history]
             summary[f"{name}_mean"] = sum(values) / len(values)
             summary[f"{name}_max"] = max(values)
-            summary[f"{name}_min"]  min(values)
+            summary[f"{name}_min"] = min(values)
             summary[f"{name}_violations"] = sum(1 for v in self._violations if v.get(name, False))
         
         return summary

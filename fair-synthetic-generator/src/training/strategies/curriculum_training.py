@@ -172,7 +172,8 @@ class CurriculumTrainingStrategy:
             # During warmup, progress = epoch / warmup_epochs
             return self._current_difficulty
         
-        # After warmup,        if self.curriculum_config.curriculum_type == "linear":
+        # After warmup
+        if self.curriculum_config.curriculum_type == "linear":
             progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
             difficulty = self.curriculum_config.start_difficulty + \
                 progress * (self.curriculum_config.end_difficulty - self.curriculum_config.start_difficulty)
@@ -319,7 +320,7 @@ class CurriculumTrainingStrategy:
                 )
         
         self.difficulty_metrics.performance_at_current = val_loss
-        self.difficulty_metrics.fairness_at_current  fairness_score
+        self.difficulty_metrics.fairness_at_current = fairness_score
     
     def get_curriculum_state(self) -> Dict[str, Any]:
         """Get current curriculum state."""
@@ -343,11 +344,22 @@ class CurriculumTrainingStrategy:
     def get_metrics(self) -> Dict[str, Any]:
         """Get curriculum metrics summary."""
         return {
-            **self.difficulty_metrics.to_dict(),
+            "current_difficulty": self.difficulty_metrics.current_difficulty,
+            "epochs_completed": self.difficulty_metrics.epochs_completed,
             "difficulty_history_length": len(self.difficulty_history),
             "fairness_weight_history_length": len(self.fairness_weight_history),
         }
 
+
+class CurriculumScheduler:
+    """Schedules difficulty during training."""
+    def __init__(self, config=None):
+        self.config = config
+
+class DifficultySampler:
+    """Samples data based on difficulty levels."""
+    def __init__(self, dataset=None):
+        self.dataset = dataset
 
 class FairnessCurriculumMixin:
     """
@@ -360,7 +372,7 @@ class FairnessCurriculumMixin:
     def __init__(
         self,
         initial_weight: float = 0.1,
-        final_weight: float  1.0,
+        final_weight: float = 1.0,
         warmup_epochs: int = 100
     ):
         self.initial_weight = initial_weight

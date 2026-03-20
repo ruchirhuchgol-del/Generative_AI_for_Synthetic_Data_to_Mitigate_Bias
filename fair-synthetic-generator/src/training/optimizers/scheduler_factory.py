@@ -10,7 +10,8 @@ This module provides:
 - Scheduler utilities
 """
 
-from typing import Any, Dict, List, Optional, Union,from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass, field
 from enum import Enum
 import math
 
@@ -379,9 +380,8 @@ class FairnessScheduler:
         
         self.base_scheduler = CosineAnnealingWarmRestarts(
             optimizer,
-            T_0=max_lr,
-            T_mult=1.0,
-            warmup_epochs=fairness_warmup_epochs,
+            T_0=int(max_lr * 100),
+            T_mult=1,
             eta_min=min_lr
         )
         
@@ -398,7 +398,7 @@ class FairnessScheduler:
         self._step_count += 1
         
         if metrics is not None:
-            fairness_metric = metrics.get("fairness_metric", metrics.get("fairness", 0.0)
+            fairness_metric = metrics.get("fairness_metric", metrics.get("fairness", 0.0))
             self._current_fairness_metric = fairness_metric
             
             # Adjust LR based on fairness progress
@@ -419,4 +419,23 @@ class FairnessScheduler:
     
     def get_last_lr(self) -> float:
         """Get last learning rate from base scheduler."""
-        return self.base_scheduler.get_last_lr()
+# Utility functions for factory
+def get_scheduler(optimizer, config_dict=None, **kwargs):
+    if config_dict is None:
+        config_dict = kwargs
+    return SchedulerFactory.create_from_dict(optimizer, config_dict)
+
+def get_linear_warmup(optimizer, warmup_steps):
+    return get_scheduler(optimizer, scheduler_type="linear", total_epochs=warmup_steps)
+
+def get_cosine_schedule(optimizer, total_steps):
+    return get_scheduler(optimizer, scheduler_type="cosine", total_epochs=total_steps)
+
+def get_exponential_decay(optimizer, gamma=0.1):
+    return get_scheduler(optimizer, scheduler_type="exponential", gamma=gamma)
+
+def get_reduce_lr_on_plateau(optimizer, patience=10):
+    return get_scheduler(optimizer, scheduler_type="reduce_on_plateau", milestones=[patience])
+
+def get_cyclic_lr(optimizer, base_lr=1e-4, max_lr=1e-3):
+    return get_scheduler(optimizer, scheduler_type="cyclic", lr=base_lr, max_lr=max_lr)
