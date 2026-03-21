@@ -1,0 +1,20 @@
+{
+  "model_id": "tabular_diffusion_credit",
+  "version": "1.0.0",
+  "architecture": "diffusion",
+  "created_at": "2026-03-21T12:22:59.871913",
+  "training_data": "credit",
+  "metrics": {
+    "fidelity": 0.95,
+    "fairness": 0.9,
+    "privacy": 0.91,
+    "disparate_impact_ratio": 0.91
+  },
+  "weights_shape": {
+    "architecture": 9,
+    "variant": 4,
+    "time_mlp": 4,
+    "denoiser": 14,
+    "schedule": 3
+  }
+}

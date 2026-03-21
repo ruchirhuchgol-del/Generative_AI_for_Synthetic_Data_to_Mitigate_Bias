@@ -1,0 +1,19 @@
+{
+  "model_id": "tabular_vae_credit",
+  "version": "1.0.0",
+  "architecture": "vae",
+  "created_at": "2026-03-21T12:22:51.316158",
+  "training_data": "credit",
+  "metrics": {
+    "fidelity": 0.91,
+    "fairness": 0.87,
+    "privacy": 0.9,
+    "disparate_impact_ratio": 0.89
+  },
+  "weights_shape": {
+    "architecture": 3,
+    "encoder": 16,
+    "decoder": 14,
+    "adversary": 6
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "model_id": "tabular_diffusion_adult",
+  "version": "1.0.0",
+  "architecture": "diffusion",
+  "created_at": "2026-03-21T12:22:54.304111",
+  "training_data": "adult",
+  "metrics": {
+    "fidelity": 0.96,
+    "fairness": 0.88,
+    "privacy": 0.9,
+    "disparate_impact_ratio": 0.9
+  },
+  "weights_shape": {
+    "architecture": 9,
+    "variant": 4,
+    "time_mlp": 4,
+    "denoiser": 14,
+    "schedule": 3
+  }
+}

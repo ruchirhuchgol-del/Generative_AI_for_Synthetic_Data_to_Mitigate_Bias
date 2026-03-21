@@ -1,0 +1,20 @@
+{
+  "model_id": "tabular_gan_compas",
+  "version": "1.0.0",
+  "architecture": "gan",
+  "created_at": "2026-03-21T12:22:52.861180",
+  "training_data": "compas",
+  "metrics": {
+    "fidelity": 0.89,
+    "fairness": 0.92,
+    "privacy": 0.87,
+    "disparate_impact_ratio": 0.94
+  },
+  "weights_shape": {
+    "architecture": 3,
+    "variant": 7,
+    "generator": 14,
+    "critic": 14,
+    "adversary": 4
+  }
+}

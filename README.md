@@ -27,11 +27,13 @@
 | **Multi-Paradigm Fairness** | Implements Group, Individual, and Counterfactual fairness constraints |
 | **Flexible Architecture** | Modular design with VAE, GAN, and Diffusion-based generators |
 | **Comprehensive Evaluation** | Built-in metrics for fidelity, fairness, and privacy assessment |
+| **Pretrained Models** | Ready-to-use models for standard datasets (Adult, Credit, COMPAS) |
 | **Production-Ready** | REST API, distributed training, and checkpoint management |
 
 ---
 
 ## 📊 Project Status
+
 
 The project has undergone rigorous integration testing and verification.
 
@@ -101,9 +103,14 @@ synthetic_data = generator.generate(n_samples=10000)
 evaluator = FairnessEvaluator(sensitive_attrs=["gender"])
 report = evaluator.evaluate(synthetic_data)
 print(report.summary())
+
+# OR: Use a pretrained model for rapid prototyping
+from src.models import pretrained
+df = pretrained.generate_synthetic_data('tabular_vae_adult', n_samples=1000)
 ```
 
 ### Command Line
+
 
 ```bash
 # Train a new model

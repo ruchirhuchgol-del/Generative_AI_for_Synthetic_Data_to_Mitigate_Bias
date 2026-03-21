@@ -24,6 +24,7 @@ from src.models.encoders import *
 from src.models.decoders import *
 from src.models.generators import *
 from src.models.discriminators import *
+from src.models import pretrained
 
 __all__ = [
     "FairGAN",
@@ -32,4 +33,6 @@ __all__ = [
     "CounterfactualGenerator",
     "get_architecture",
     "list_architectures",
+    "pretrained",
 ]
+

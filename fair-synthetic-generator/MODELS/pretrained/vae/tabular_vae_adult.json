@@ -1,0 +1,19 @@
+{
+  "model_id": "tabular_vae_adult",
+  "version": "1.0.0",
+  "architecture": "vae",
+  "created_at": "2026-03-21T12:22:50.541239",
+  "training_data": "adult",
+  "metrics": {
+    "fidelity": 0.92,
+    "fairness": 0.89,
+    "privacy": 0.91,
+    "disparate_impact_ratio": 0.92
+  },
+  "weights_shape": {
+    "architecture": 3,
+    "encoder": 16,
+    "decoder": 14,
+    "adversary": 6
+  }
+}

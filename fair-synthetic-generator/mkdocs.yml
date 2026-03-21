@@ -49,7 +49,9 @@ nav:
   - Architecture:
     - Overview: architecture.md
     - Models: models.md
+    - Pretrained Models: pretrained_models.md
     - Fairness: fairness.md
+
   - API Reference:
     - Overview: api/index.md
     - Core: api/core.md

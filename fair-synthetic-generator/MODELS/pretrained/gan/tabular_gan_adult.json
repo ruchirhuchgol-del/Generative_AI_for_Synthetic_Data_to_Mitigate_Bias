@@ -1,0 +1,20 @@
+{
+  "model_id": "tabular_gan_adult",
+  "version": "1.0.0",
+  "architecture": "gan",
+  "created_at": "2026-03-21T12:22:52.403472",
+  "training_data": "adult",
+  "metrics": {
+    "fidelity": 0.94,
+    "fairness": 0.86,
+    "privacy": 0.88,
+    "disparate_impact_ratio": 0.88
+  },
+  "weights_shape": {
+    "architecture": 3,
+    "variant": 7,
+    "generator": 14,
+    "critic": 14,
+    "adversary": 4
+  }
+}
